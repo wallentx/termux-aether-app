@@ -7,7 +7,7 @@ public class VoiceInputTextTest {
 
     @Test
     public void controlCharactersCannotExecuteOrReprogramTheTerminal() {
-        Assert.assertEquals("first second [31m", VoiceInputText.forTerminal("first\r\nsecond\u001b[31m\u0000"));
+        Assert.assertEquals("first second[31m", VoiceInputText.forTerminal("first\r\nsecond\u001b[31m\u0000"));
     }
 
     @Test

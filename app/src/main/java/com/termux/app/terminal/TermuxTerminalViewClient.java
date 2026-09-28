@@ -43,6 +43,7 @@ import com.termux.shared.view.ViewUtils;
 import com.termux.terminal.KeyHandler;
 import com.termux.terminal.TerminalEmulator;
 import com.termux.terminal.TerminalSession;
+import com.termux.view.TerminalView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -214,7 +215,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     }
 
     private boolean isControlModifierActive(MotionEvent event) {
-        return event.isCtrlPressed() || mVirtualControlKeyDown ||
+        return (event.getMetaState() & KeyEvent.META_CTRL_ON) != 0 || mVirtualControlKeyDown ||
             (mActivity.getExtraKeysView() != null &&
                 Boolean.TRUE.equals(mActivity.getExtraKeysView().readSpecialButton(SpecialButton.CTRL, false)));
     }

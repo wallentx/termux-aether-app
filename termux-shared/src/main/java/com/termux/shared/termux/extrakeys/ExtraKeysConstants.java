@@ -92,6 +92,7 @@ public class ExtraKeysConstants {
             put("DEL", "⌦"); // U+2326 ⌦ ERASE TO THE RIGHT not well known but easy to understand
             put("DRAWER", "☰"); // U+2630 ☰ TRIGRAM FOR HEAVEN not well known but easy to understand
             put("KEYBOARD", "⌨"); // U+2328 ⌨ KEYBOARD not well known but easy to understand
+            put("VOICE", "🎤");
             put("PASTE", "⎘"); // U+2398
             put("SCROLL", "⇳"); // U+21F3
         }};

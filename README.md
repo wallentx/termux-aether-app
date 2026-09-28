@@ -160,6 +160,15 @@ Run the included Aether compatibility check from the installed Termux app:
 aether-run "$HOME/../aether/aether-probe"
 ```
 
+Place `DRAWER` and `VOICE` anywhere in the `extra-keys` layout in
+`~/.termux/termux.properties`. `DRAWER` opens the session panel without an edge
+swipe. `VOICE` opens Android's speech prompt, inserts the recognized text into
+the same running session without pressing Enter, and leaves the extra keys
+visible. Canceling recognition or changing sessions inserts nothing. The speech
+UI comes from the installed Android recognizer; the app does not control
+Gboard's microphone button. Ctrl+tap on a terminal URL opens it in the default
+browser, including when ordinary tap-to-open is disabled.
+
 For broader command, storage, and visual sixel checks, see
 [device validation](docs/PIXEL11_VALIDATION.md). For implemented features and
 remaining experiments, see the [feature plan](docs/PIXEL11_FEATURE_PLAN.md).

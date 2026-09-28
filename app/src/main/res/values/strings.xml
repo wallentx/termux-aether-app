@@ -54,6 +54,10 @@
     <string name="action_create_named_session_confirm">Create</string>
 
     <string name="action_toggle_soft_keyboard">Keyboard</string>
+    <string name="voice_input_prompt">Speak to enter text in Termux</string>
+    <string name="msg_voice_input_unavailable">No speech input app is available</string>
+    <string name="msg_voice_input_no_session">No running terminal session for voice input</string>
+    <string name="msg_voice_input_session_changed">Voice input was not inserted because the session changed</string>
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>
     <string name="msg_disabling_terminal_toolbar">Disabling Terminal Toolbar</string>

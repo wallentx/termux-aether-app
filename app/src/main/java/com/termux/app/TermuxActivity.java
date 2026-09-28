@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.IBinder;
+import android.speech.RecognizerIntent;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -33,10 +34,10 @@ import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
 import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
+import com.termux.app.terminal.io.VoiceInputText;
 import com.termux.shared.activities.ReportActivity;
 import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.activity.media.AppCompatActivityUtils;
-import com.termux.shared.data.IntentUtils;
 import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
 import com.termux.shared.termux.TermuxConstants;
@@ -63,6 +64,9 @@ import com.termux.view.TerminalViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -194,18 +198,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final int CONTEXT_MENU_REPORT_ID = 9;
 
     private static final String ARG_TERMINAL_TOOLBAR_TEXT_INPUT = "terminal_toolbar_text_input";
+    private static final String ARG_VOICE_INPUT_SESSION = "voice_input_session";
+    private static final String ARG_VOICE_INPUT_TEXT = "voice_input_text";
     private static final String ARG_ACTIVITY_RECREATED = "activity_recreated";
 
     private static final String LOG_TAG = "TermuxActivity";
     private static final int REQUEST_TERMINAL_PERMISSIONS = 2001;
+
+    private String mVoiceInputSessionHandle;
+    private String mPendingVoiceInputText;
+    private final ActivityResultLauncher<Intent> mVoiceInputLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(), this::onVoiceInputResult);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
         mIsOnResumeAfterOnCreate = true;
 
-        if (savedInstanceState != null)
+        if (savedInstanceState != null) {
             mIsActivityRecreated = savedInstanceState.getBoolean(ARG_ACTIVITY_RECREATED, false);
+            mVoiceInputSessionHandle = savedInstanceState.getString(ARG_VOICE_INPUT_SESSION);
+            mPendingVoiceInputText = savedInstanceState.getString(ARG_VOICE_INPUT_TEXT);
+        }
 
         // Delete ReportInfo serialized object files from cache older than 14 days
         ReportActivity.deleteReportInfoFilesOlderThanXDays(this, 14, false);
@@ -402,6 +416,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         super.onSaveInstanceState(savedInstanceState);
         saveTerminalToolbarTextInput(savedInstanceState);
+        if (mVoiceInputSessionHandle != null)
+            savedInstanceState.putString(ARG_VOICE_INPUT_SESSION, mVoiceInputSessionHandle);
+        if (mPendingVoiceInputText != null)
+            savedInstanceState.putString(ARG_VOICE_INPUT_TEXT, mPendingVoiceInputText);
         savedInstanceState.putBoolean(ARG_ACTIVITY_RECREATED, true);
     }
 
@@ -458,6 +476,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 mTermuxTerminalSessionActivityClient.setCurrentSession(mTermuxTerminalSessionActivityClient.getCurrentStoredSessionOrLast());
             }
         }
+
+        deliverPendingVoiceInput();
 
     }
 
@@ -591,6 +611,76 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             String textInput = textInputView.getText().toString();
             if (!textInput.isEmpty()) savedInstanceState.putString(ARG_TERMINAL_TOOLBAR_TEXT_INPUT, textInput);
         }
+    }
+
+    /** Dictate into the session that was active when the VOICE extra key was tapped. */
+    public void startVoiceInput() {
+        if (mVoiceInputSessionHandle != null) return;
+
+        TerminalSession session = getCurrentSession();
+        if (session == null || !session.isRunning()) {
+            Logger.showToast(this, getString(R.string.msg_voice_input_no_session), true);
+            return;
+        }
+
+        mVoiceInputSessionHandle = session.mHandle;
+        mPendingVoiceInputText = null;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_input_prompt));
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        try {
+            mVoiceInputLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            mVoiceInputSessionHandle = null;
+            Logger.showToast(this, getString(R.string.msg_voice_input_unavailable), true);
+        }
+    }
+
+    private void onVoiceInputResult(ActivityResult result) {
+        if (mVoiceInputSessionHandle == null) {
+            mPendingVoiceInputText = null;
+            return;
+        }
+        if (result.getResultCode() != RESULT_OK || result.getData() == null) {
+            mVoiceInputSessionHandle = null;
+            mPendingVoiceInputText = null;
+            return;
+        }
+
+        ArrayList<String> results = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+        if (results == null || results.isEmpty()) {
+            mVoiceInputSessionHandle = null;
+            mPendingVoiceInputText = null;
+            return;
+        }
+
+        mPendingVoiceInputText = VoiceInputText.forTerminal(results.get(0));
+        if (mPendingVoiceInputText.isEmpty()) {
+            mVoiceInputSessionHandle = null;
+            mPendingVoiceInputText = null;
+            return;
+        }
+        deliverPendingVoiceInput();
+    }
+
+    private void deliverPendingVoiceInput() {
+        if (mPendingVoiceInputText == null || mVoiceInputSessionHandle == null || mTermuxService == null)
+            return;
+
+        TerminalSession session = getCurrentSession();
+        String expectedHandle = mVoiceInputSessionHandle;
+        String text = mPendingVoiceInputText;
+        mVoiceInputSessionHandle = null;
+        mPendingVoiceInputText = null;
+        if (session == null || !session.isRunning() || !expectedHandle.equals(session.mHandle)) {
+            Logger.showToast(this, getString(R.string.msg_voice_input_session_changed), true);
+            return;
+        }
+
+        if (isTerminalToolbarTextInputViewSelected()) getTerminalToolbarViewPager().setCurrentItem(0, false);
+        session.write(text); // Insertion only: speech must never press Enter or run a command.
+        mTerminalView.requestFocus();
     }
 
 
@@ -824,7 +914,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Logger.logVerbose(LOG_TAG, "onActivityResult: requestCode: " + requestCode + ", resultCode: "  + resultCode + ", data: "  + IntentUtils.getIntentString(data));
+        // Activity results may include a private voice transcript; never log the intent contents.
+        Logger.logVerbose(LOG_TAG, "onActivityResult: requestCode: " + requestCode + ", resultCode: "  + resultCode + ", dataPresent: " + (data != null));
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }

@@ -230,3 +230,22 @@ On the Pixel on 2026-09-26, both crash-cleanup cases and the existing native
 terminal exit/UTF-8/EOF/cancellation checks passed with the monitor. These are
 actual native component checks; full APK/Binder lifecycle validation remains
 separate. No performance improvement is claimed from this change.
+
+### Extra keys, voice input, and links
+
+`DRAWER` is an existing extra key that opens the session panel directly. The
+`VOICE` key starts the installed Android speech recognition activity and writes
+its returned text only to the still-running session that launched it. It never
+sends Enter; control characters in a recognition result are removed or replaced
+with spaces. The toolbar returns to extra keys after a successful result.
+Cancellation, no recognizer, or a changed/exited session leaves the terminal
+unchanged. These behaviors still need installed-APK checks; the `VoiceInputText`
+unit test only checks the transcription boundary.
+
+With Ctrl held on a physical keyboard or activated in extra keys, tapping a URL
+opens it with Android's default URL handler. A one-shot extra-key Ctrl is consumed
+when a link opens. Ordinary taps and taps on non-links keep their existing
+behavior. Verify in a mouse-reporting terminal program that Ctrl+tap does not
+also send a click to the program. The installed-APK UI checks should cover the
+drawer button, canceled speech, recognizer absence, rotation during recognition,
+session changes, and a link while `terminal-onclick-url-open` is disabled.

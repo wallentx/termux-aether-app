@@ -23,10 +23,11 @@ public interface TerminalViewClient {
 
 
 
-    /**
-     * On a single tap on the terminal if terminal mouse reporting not enabled.
-     */
+    /** Called after a single tap, including taps on mouse-reporting terminal applications. */
     void onSingleTapUp(MotionEvent e);
+
+    /** Allow app-specific tap actions to take precedence over terminal mouse reporting. */
+    default boolean shouldSuppressMouseTap(MotionEvent e) { return false; }
 
     boolean shouldBackButtonBeMappedToEscape();
 

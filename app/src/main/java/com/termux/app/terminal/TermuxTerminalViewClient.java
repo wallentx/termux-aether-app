@@ -184,15 +184,17 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void onSingleTapUp(MotionEvent e) {
-        TerminalEmulator term = mActivity.getCurrentSession().getEmulator();
+        TerminalSession session = mActivity.getCurrentSession();
+        if (session == null) return;
+        TerminalEmulator term = session.getEmulator();
+        if (term == null) return;
 
-        if (mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
-            int[] columnAndRow = mActivity.getTerminalView().getColumnAndRow(e, true);
-            String wordAtTap = term.getScreen().getWordAtLocation(columnAndRow[0], columnAndRow[1]);
-            LinkedHashSet<CharSequence> urlSet = TermuxUrlUtils.extractUrls(wordAtTap);
-
-            if (!urlSet.isEmpty()) {
-                String url = (String) urlSet.iterator().next();
+        boolean ctrlPressed = isControlModifierActive(e);
+        if (ctrlPressed || mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
+            String url = getUrlAtTap(e);
+            if (url != null) {
+                if (ctrlPressed && mActivity.getExtraKeysView() != null)
+                    mActivity.getExtraKeysView().readSpecialButton(SpecialButton.CTRL, true);
                 ShareUtils.openUrl(mActivity, url);
                 return;
             }
@@ -204,6 +206,29 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             else
                 Logger.logVerbose(LOG_TAG, "Not showing soft keyboard onSingleTapUp since its disabled");
         }
+    }
+
+    @Override
+    public boolean shouldSuppressMouseTap(MotionEvent event) {
+        return isControlModifierActive(event) && getUrlAtTap(event) != null;
+    }
+
+    private boolean isControlModifierActive(MotionEvent event) {
+        return event.isCtrlPressed() || mVirtualControlKeyDown ||
+            (mActivity.getExtraKeysView() != null &&
+                Boolean.TRUE.equals(mActivity.getExtraKeysView().readSpecialButton(SpecialButton.CTRL, false)));
+    }
+
+    private String getUrlAtTap(MotionEvent event) {
+        TerminalSession session = mActivity.getCurrentSession();
+        TerminalView terminalView = mActivity.getTerminalView();
+        if (session == null || terminalView == null || session.getEmulator() == null) return null;
+
+        int[] columnAndRow = terminalView.getColumnAndRow(event, true);
+        String word = session.getEmulator().getScreen().getWordAtLocation(columnAndRow[0], columnAndRow[1]);
+        if (word == null) return null;
+        LinkedHashSet<CharSequence> urls = TermuxUrlUtils.extractUrls(word);
+        return urls.isEmpty() ? null : urls.iterator().next().toString();
     }
 
     @Override

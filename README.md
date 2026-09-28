@@ -169,6 +169,12 @@ UI comes from the installed Android recognizer; the app does not control
 Gboard's microphone button. Ctrl+tap on a terminal URL opens it in the default
 browser, including when ordinary tap-to-open is disabled.
 
+When selecting text from an app that draws each screen row separately, use
+**Copy as one line** in the selection menu (or its overflow) to remove row breaks.
+Regular **Copy** preserves real newlines. The one-line choice keeps true terminal
+auto-wraps joined, removes repeated indentation from continuation rows, and
+replaces other row breaks with a space.
+
 For broader command, storage, and visual sixel checks, see
 [device validation](docs/PIXEL11_VALIDATION.md). For implemented features and
 remaining experiments, see the [feature plan](docs/PIXEL11_FEATURE_PLAN.md).

@@ -127,6 +127,47 @@ public final class TerminalBuffer {
         return getSelectedText(selX1, selY1, selX2, selY2, joinBackLines, false);
     }
 
+    /** Copy a selection as one line when a screen-oriented app has drawn wrapped rows separately. */
+    public String getSelectedTextAsSingleLine(int selX1, int selY1, int selX2, int selY2) {
+        // True terminal auto-wraps are already joined. Screen-oriented apps may draw each visual
+        // row with a newline and repeat a left margin; remove that shared margin on continuation rows.
+        String selected = getSelectedText(selX1, selY1, selX2, selY2);
+        int firstBreak = selected.indexOf('\n');
+        if (firstBreak < 0) return selected;
+
+        int commonIndent = Integer.MAX_VALUE;
+        for (int start = firstBreak + 1; start < selected.length();) {
+            int end = selected.indexOf('\n', start);
+            if (end < 0) end = selected.length();
+            int content = start;
+            while (content < end && isCopyIndent(selected.charAt(content))) content++;
+            if (content < end) commonIndent = Math.min(commonIndent, content - start);
+            start = end + 1;
+        }
+        if (commonIndent == Integer.MAX_VALUE) commonIndent = 0;
+
+        StringBuilder result = new StringBuilder(selected.length()).append(selected, 0, firstBreak);
+        for (int start = firstBreak + 1; start <= selected.length();) {
+            int end = selected.indexOf('\n', start);
+            if (end < 0) end = selected.length();
+            int content = start;
+            while (content < end && isCopyIndent(selected.charAt(content))) content++;
+            if (content < end) {
+                while (result.length() > 0 && isCopyIndent(result.charAt(result.length() - 1)))
+                    result.setLength(result.length() - 1);
+                if (result.length() > 0) result.append(' ');
+                result.append(selected, start + Math.min(commonIndent, content - start), end);
+            }
+            if (end == selected.length()) break;
+            start = end + 1;
+        }
+        return result.toString();
+    }
+
+    private static boolean isCopyIndent(char c) {
+        return c == ' ' || c == '\t';
+    }
+
     public String getSelectedText(int selX1, int selY1, int selX2, int selY2, boolean joinBackLines, boolean joinFullLines) {
         final StringBuilder builder = new StringBuilder();
         final int columns = mColumns;

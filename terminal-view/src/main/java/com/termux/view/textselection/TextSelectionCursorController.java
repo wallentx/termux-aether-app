@@ -34,6 +34,7 @@ public class TextSelectionCursorController implements CursorController {
     public final int ACTION_COPY = 1;
     public final int ACTION_PASTE = 2;
     public final int ACTION_MORE = 3;
+    public final int ACTION_COPY_ONE_LINE = 4;
 
     public TextSelectionCursorController(TerminalView terminalView) {
         this.terminalView = terminalView;
@@ -118,6 +119,7 @@ public class TextSelectionCursorController implements CursorController {
                 ClipboardManager clipboard = (ClipboardManager) terminalView.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                 menu.add(Menu.NONE, ACTION_COPY, Menu.NONE, R.string.copy_text).setShowAsAction(show);
                 menu.add(Menu.NONE, ACTION_PASTE, Menu.NONE, R.string.paste_text).setEnabled(clipboard != null && clipboard.hasPrimaryClip()).setShowAsAction(show);
+                menu.add(Menu.NONE, ACTION_COPY_ONE_LINE, Menu.NONE, R.string.copy_text_one_line).setShowAsAction(show);
                 menu.add(Menu.NONE, ACTION_MORE, Menu.NONE, R.string.text_selection_more);
                 return true;
             }
@@ -138,6 +140,11 @@ public class TextSelectionCursorController implements CursorController {
                     case ACTION_COPY:
                         String selectedText = getSelectedText();
                         terminalView.mTermSession.onCopyTextToClipboard(selectedText);
+                        terminalView.stopTextSelectionMode();
+                        break;
+                    case ACTION_COPY_ONE_LINE:
+                        String singleLineText = terminalView.mEmulator.getScreen().getSelectedTextAsSingleLine(mSelX1, mSelY1, mSelX2, mSelY2);
+                        terminalView.mTermSession.onCopyTextToClipboard(singleLineText);
                         terminalView.stopTextSelectionMode();
                         break;
                     case ACTION_PASTE:

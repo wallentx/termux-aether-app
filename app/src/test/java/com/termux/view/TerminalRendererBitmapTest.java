@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import com.termux.app.terminal.TerminalUrlHighlights;
 import com.termux.terminal.TerminalBuffer;
 import com.termux.terminal.TerminalEmulator;
 import com.termux.terminal.TerminalOutput;
@@ -36,6 +37,8 @@ public class TerminalRendererBitmapTest {
         final List<Rect> sources = new ArrayList<>();
         final List<RectF> destinations = new ArrayList<>();
         final StringBuilder text = new StringBuilder();
+        final List<String> textRuns = new ArrayList<>();
+        final List<Boolean> underlinedRuns = new ArrayList<>();
         @Override public void drawBitmap(Bitmap bitmap, Rect src, RectF dst, Paint paint) {
             sources.add(new Rect(src)); destinations.add(new RectF(dst));
         }
@@ -43,6 +46,8 @@ public class TerminalRendererBitmapTest {
                 int contextCount, float x, float y, boolean rtl, Paint paint) {
             assertTrue("Nonempty text runs only", count > 0);
             text.append(value, index, count);
+            textRuns.add(new String(value, index, count));
+            underlinedRuns.add(paint.isUnderlineText());
         }
     }
     private TerminalEmulator terminal() {
@@ -61,6 +66,24 @@ public class TerminalRendererBitmapTest {
         RecordingCanvas c = new RecordingCanvas();
         new TerminalRenderer(16, Typeface.MONOSPACE).render(t, c, 0, -1, -1, -1, -1);
         return c;
+    }
+    @Test public void controlLinkMaskUnderlinesOnlyUrlText() {
+        TerminalEmulator t = new TerminalEmulator(OUTPUT, 24, 4, 2, 3, 20, null);
+        byte[] bytes = "plain https://a.io end".getBytes(StandardCharsets.UTF_8);
+        t.append(bytes, bytes.length);
+        boolean[][] mask = TerminalUrlHighlights.find(t.getScreen(), 0, t.mRows, t.mColumns);
+        RecordingCanvas normal = render(t);
+        for (boolean underlined : normal.underlinedRuns) assertFalse(underlined);
+        RecordingCanvas c = new RecordingCanvas();
+        new TerminalRenderer(16, Typeface.MONOSPACE).render(t, c, 0, -1, -1, -1, -1, mask);
+
+        StringBuilder underlined = new StringBuilder();
+        StringBuilder plain = new StringBuilder();
+        for (int i = 0; i < c.textRuns.size(); i++)
+            (c.underlinedRuns.get(i) ? underlined : plain).append(c.textRuns.get(i));
+        assertTrue(underlined.toString().contains("https://a.io"));
+        assertTrue(plain.toString().contains("plain"));
+        assertTrue(plain.toString().contains(" end"));
     }
     @Test public void batchesOneDrawPerImageRowAndPreservesAdjacentText() {
         TerminalEmulator t = terminal();

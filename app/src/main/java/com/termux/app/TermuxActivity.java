@@ -954,6 +954,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     public void setExtraKeysView(ExtraKeysView extraKeysView) {
         mExtraKeysView = extraKeysView;
+        if (extraKeysView != null) {
+            extraKeysView.setOnSpecialButtonStateChangedListener(() -> {
+                if (mTerminalView != null) mTerminalView.postInvalidateOnAnimation();
+            });
+        }
     }
 
     public DrawerLayout getDrawer() {

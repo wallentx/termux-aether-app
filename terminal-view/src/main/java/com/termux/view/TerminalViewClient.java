@@ -5,6 +5,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.termux.terminal.TerminalEmulator;
 import com.termux.terminal.TerminalSession;
 
 /**
@@ -28,6 +29,9 @@ public interface TerminalViewClient {
 
     /** Allow app-specific tap actions to take precedence over terminal mouse reporting. */
     default boolean shouldSuppressMouseTap(MotionEvent e) { return false; }
+
+    /** Optional visual URL underlines for the currently visible terminal rows. */
+    default boolean[][] getLinkUnderlineMask(TerminalEmulator emulator, int topRow) { return null; }
 
     boolean shouldBackButtonBeMappedToEscape();
 

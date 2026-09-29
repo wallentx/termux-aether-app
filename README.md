@@ -167,7 +167,8 @@ the same running session without pressing Enter, and leaves the extra keys
 visible. Canceling recognition or changing sessions inserts nothing. The speech
 UI comes from the installed Android recognizer; the app does not control
 Gboard's microphone button. Ctrl+tap on a terminal URL opens it in the default
-browser, including when ordinary tap-to-open is disabled.
+browser, including when ordinary tap-to-open is disabled. Activating Ctrl also
+underlines visible URLs so the links that can be tapped are apparent.
 
 When selecting text from an app that draws each screen row separately, use
 **Copy as one line** in the selection menu (or its overflow) to remove row breaks.

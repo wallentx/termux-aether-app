@@ -1040,7 +1040,8 @@ public final class TerminalView extends View {
                 mTextSelectionCursorController.getSelectors(sel);
             }
 
-            mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
+            boolean[][] linkMask = mClient == null ? null : mClient.getLinkUnderlineMask(mEmulator, mTopRow);
+            mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3], linkMask);
 
             // render the text selection handles
             renderTextSelection();

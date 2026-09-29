@@ -248,7 +248,9 @@ when a link opens. Ordinary taps and taps on non-links keep their existing
 behavior. While Ctrl is active, visible URLs are underlined, including URLs
 wrapped across rows; the underlines disappear on Ctrl release or one-shot
 consumption. Check this with the extra key, a physical Ctrl key, and the
-volume-down Ctrl shortcut. Verify in a mouse-reporting terminal program that
-Ctrl+tap does not also send a click to the program. The installed-APK UI checks
+volume-down Ctrl shortcut. Check a Codex-style URL wrapped onto an indented
+row: either row should open the whole URL without its closing `)`. Verify in a
+mouse-reporting terminal program that Ctrl+tap does not also send a click to the
+program. The installed-APK UI checks
 should cover the drawer button, canceled speech, recognizer absence, rotation during recognition,
 session changes, and a link while `terminal-onclick-url-open` is disabled.

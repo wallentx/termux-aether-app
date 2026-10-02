@@ -195,8 +195,10 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         // Since we cannot rely on {@link TermuxActivity.onDestroy()} to always complete,
         // we unset clients here as well if it failed, so that we do not leave service and session
         // clients with references to the activity.
-        if (mTermuxTerminalSessionActivityClient != null)
-            unsetTermuxTerminalSessionClient();
+        // An old binding can finish unbinding after a replacement activity connected.
+        // Do not detach that live activity's rendering callbacks.
+        if (mTermuxTerminalSessionActivityClient != null && mTermuxTerminalSessionActivityClient.isActivityDestroyed())
+            unsetTermuxTerminalSessionClient(mTermuxTerminalSessionActivityClient);
         return false;
     }
 
@@ -477,8 +479,10 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         if (Logger.getLogLevel() >= Logger.LOG_LEVEL_VERBOSE)
             Logger.logVerboseExtended(LOG_TAG, executionCommand.toString());
 
+        boolean remoteTask = com.termux.app.session.SessionManager.required(this);
         AppShell newTermuxTask = AppShell.execute(this, executionCommand, this,
-            new TermuxShellEnvironment(), null,false);
+            remoteTask ? new com.termux.app.session.SessionEnvironment() : new TermuxShellEnvironment(),
+            null, false, remoteTask ? com.termux.app.session.SessionManager.get(this).backgroundFactory() : null);
         if (newTermuxTask == null) {
             Logger.logError(LOG_TAG, "Failed to execute new TermuxTask command for:\n" + executionCommand.getCommandIdAndLabelLogString());
             // If the execution command was started for a plugin, then process the error
@@ -591,8 +595,19 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         // If the execution command was started for a plugin, only then will the stdout be set
         // Otherwise if command was manually started by the user like by adding a new terminal session,
         // then no need to set stdout
+        boolean remoteSession = !executionCommand.isFailsafe
+            && com.termux.app.session.SessionManager.required(this);
+        if (remoteSession && !com.termux.app.session.SessionManager.get(this).isReady()) {
+            executionCommand.setStateFailed(1, "Shizuku is required. Open Termux and connect Shizuku before starting a session.");
+            if (executionCommand.isPluginExecutionCommand)
+                TermuxPluginUtils.processPluginExecutionCommandError(this, LOG_TAG, executionCommand, false);
+            return null;
+        }
         TermuxSession newTermuxSession = TermuxSession.execute(this, executionCommand, getTermuxTerminalSessionClient(),
-            this, new TermuxShellEnvironment(), null, executionCommand.isPluginExecutionCommand);
+            this, remoteSession ? new com.termux.app.session.SessionEnvironment() : new TermuxShellEnvironment(),
+            null, executionCommand.isPluginExecutionCommand);
+        if (newTermuxSession != null && remoteSession)
+            newTermuxSession.getTerminalSession().setProcessFactory(com.termux.app.session.SessionManager.get(this).factory());
         if (newTermuxSession == null) {
             Logger.logError(LOG_TAG, "Failed to execute new TermuxSession command for:\n" + executionCommand.getCommandIdAndLabelLogString());
             // If the execution command was started for a plugin, then process the error
@@ -768,7 +783,9 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
      * so that the {@link TermuxService} and {@link TerminalSession} and {@link TerminalEmulator}
      * clients do not hold an activity references.
      */
-    public synchronized void unsetTermuxTerminalSessionClient() {
+    public synchronized void unsetTermuxTerminalSessionClient(TermuxTerminalSessionActivityClient expectedClient) {
+        // Activity destruction can arrive after its replacement registered.
+        if (mTermuxTerminalSessionActivityClient != expectedClient) return;
         for (int i = 0; i < mShellManager.mTermuxSessions.size(); i++)
             mShellManager.mTermuxSessions.get(i).getTerminalSession().updateTerminalSessionClient(mTermuxTerminalSessionServiceClient);
 
@@ -784,7 +801,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
 
         // Set pending intent to be launched when notification is clicked
         Intent notificationIntent = TermuxActivity.newInstance(this);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
 
         // Set notification text
@@ -827,7 +844,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
 
         // Set Exit button action
         Intent exitIntent = new Intent(this, TermuxService.class).setAction(TERMUX_SERVICE.ACTION_STOP_SERVICE);
-        builder.addAction(android.R.drawable.ic_delete, res.getString(R.string.notification_action_exit), PendingIntent.getService(this, 0, exitIntent, 0));
+        builder.addAction(android.R.drawable.ic_delete, res.getString(R.string.notification_action_exit), PendingIntent.getService(this, 0, exitIntent, PendingIntent.FLAG_IMMUTABLE));
 
 
         // Set Wakelock button actions
@@ -835,7 +852,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         Intent toggleWakeLockIntent = new Intent(this, TermuxService.class).setAction(newWakeAction);
         String actionTitle = res.getString(wakeLockHeld ? R.string.notification_action_wake_unlock : R.string.notification_action_wake_lock);
         int actionIcon = wakeLockHeld ? android.R.drawable.ic_lock_idle_lock : android.R.drawable.ic_lock_lock;
-        builder.addAction(actionIcon, actionTitle, PendingIntent.getService(this, 0, toggleWakeLockIntent, 0));
+        builder.addAction(actionIcon, actionTitle, PendingIntent.getService(this, 0, toggleWakeLockIntent, PendingIntent.FLAG_IMMUTABLE));
 
 
         return builder.build();

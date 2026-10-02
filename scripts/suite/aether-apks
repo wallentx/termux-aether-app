@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/sh
+set -eu
+assets=/data/data/com.termux/files/usr/share/termux-aether-suite
+case "${1-}" in
+    api) apk=termux-aether-api.apk;;
+    app) apk=termux-aether-app.apk;;
+    *) printf 'Run aether-apks api first, then aether-apks app. Android confirms each update.\n'; exit 0;;
+esac
+cd "$assets"
+sha256sum --check SHA256SUMS
+exec termux-open "$assets/$apk"

@@ -1,0 +1,125 @@
+{
+  "device": "Pixel 11 Pro XL",
+  "android": 17,
+  "runtime": "Android ART, Termux app UID",
+  "baseline_commit": "dc24a91808942d0104afe0e4c67d44cd86d35b71",
+  "correctness": {
+    "equivalent_codepoints": 1114112,
+    "boundary_checks": 4
+  },
+  "samples": [
+    {
+      "workload": "ascii",
+      "pair": 0,
+      "baseline_calls_per_second": 300912560.3281868,
+      "candidate_calls_per_second": 435499610.5824937
+    },
+    {
+      "workload": "ascii",
+      "pair": 1,
+      "baseline_calls_per_second": 300889839.76935536,
+      "candidate_calls_per_second": 435410208.8502224
+    },
+    {
+      "workload": "ascii",
+      "pair": 2,
+      "baseline_calls_per_second": 300991697.6018768,
+      "candidate_calls_per_second": 427413641.9378886
+    },
+    {
+      "workload": "ascii",
+      "pair": 3,
+      "baseline_calls_per_second": 301627352.0417819,
+      "candidate_calls_per_second": 427534438.4419644
+    },
+    {
+      "workload": "ascii",
+      "pair": 4,
+      "baseline_calls_per_second": 306414556.43296003,
+      "candidate_calls_per_second": 427341063.85765904
+    },
+    {
+      "workload": "mixed",
+      "pair": 0,
+      "baseline_calls_per_second": 188442640.05587116,
+      "candidate_calls_per_second": 230419371.31604314
+    },
+    {
+      "workload": "mixed",
+      "pair": 1,
+      "baseline_calls_per_second": 188579460.29149166,
+      "candidate_calls_per_second": 230408643.26457363
+    },
+    {
+      "workload": "mixed",
+      "pair": 2,
+      "baseline_calls_per_second": 188636125.34041464,
+      "candidate_calls_per_second": 230398155.52612975
+    },
+    {
+      "workload": "mixed",
+      "pair": 3,
+      "baseline_calls_per_second": 188787315.232418,
+      "candidate_calls_per_second": 230469517.46031228
+    },
+    {
+      "workload": "mixed",
+      "pair": 4,
+      "baseline_calls_per_second": 188524889.32494283,
+      "candidate_calls_per_second": 230479112.48224494
+    },
+    {
+      "workload": "unicode",
+      "pair": 0,
+      "baseline_calls_per_second": 77877908.58909757,
+      "candidate_calls_per_second": 77894450.88555795
+    },
+    {
+      "workload": "unicode",
+      "pair": 1,
+      "baseline_calls_per_second": 77636653.59617345,
+      "candidate_calls_per_second": 78007924.13792068
+    },
+    {
+      "workload": "unicode",
+      "pair": 2,
+      "baseline_calls_per_second": 77334743.69750558,
+      "candidate_calls_per_second": 77379199.55528055
+    },
+    {
+      "workload": "unicode",
+      "pair": 3,
+      "baseline_calls_per_second": 77335812.94797526,
+      "candidate_calls_per_second": 77382808.16628952
+    },
+    {
+      "workload": "unicode",
+      "pair": 4,
+      "baseline_calls_per_second": 77348767.22033617,
+      "candidate_calls_per_second": 77002752.67299916
+    }
+  ],
+  "median_calls_per_second": {
+    "ascii": {
+      "baseline": 300991697.6018768,
+      "candidate": 427534438.4419644,
+      "ratio": 1.420419373186387
+    },
+    "mixed": {
+      "baseline": 188579460.29149166,
+      "candidate": 230419371.31604314,
+      "ratio": 1.2218688660996195
+    },
+    "unicode": {
+      "baseline": 77348767.22033617,
+      "candidate": 77382808.16628952,
+      "ratio": 1.000440096813132
+    }
+  },
+  "source_sha256": {
+    "WidthBenchmark.java": "f79a320db679015e9f3cc7ae69f72b350704c69a46e88a4de4a10b8d2b6b17b8",
+    "com/termux/terminal/WcWidthBaseline.java": "a65e5d967d13cbd1f58a2baac3156083211b2365cddb5754ffffb053c82194db",
+    "com/termux/terminal/WcWidth.java": "2b7792696d3ba4cd0e8f3299a055e1c424d32811a707548592af79b78bb50f8a"
+  },
+  "limitations": "Isolated width classification, not terminal throughput or frame rate. Five alternating pairs after warmup; clocks and thermals uncontrolled."
+}

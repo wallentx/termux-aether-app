@@ -2,6 +2,8 @@ package com.termux.terminal;
 
 import android.graphics.Bitmap;
 
+import java.util.Arrays;
+
 /**
  * A terminal sixel received via `DCS q s..s ST` or `DCS P1; P2; P3; q s..s ST`.
  *
@@ -57,6 +59,11 @@ public class TerminalSixel {
 
     protected final int[] mColorMap;
     protected int mColor;
+
+    // Reused scanline for repeated columns. Only the initialized prefix is used.
+    private int[] mRunPixels;
+    private int mRunColor;
+    private int mRunPixelsFilled;
 
 
 
@@ -213,21 +220,40 @@ public class TerminalSixel {
                 mHeight = mCurY + SIXEL__LINE_LEN;
             }
 
-            while (repeat-- > 0) {
-                for (int i = 0; i < SIXEL__LINE_LEN; i++) {
-                    if ((b & (1 << i)) != 0) {
-                        mBitmap.setPixel(mCurX, mCurY + i, mColor);
-                    }
-                }
-
-                mCurX += 1;
-                if (mCurX > mWidth) {
-                    mWidth = mCurX;
-                }
-            }
+            paintRun(b, repeat);
+            mCurX += repeat;
+            if (mCurX > mWidth) mWidth = mCurX;
         }
 
         return true;
+    }
+
+    // Package-private so the device benchmark can substitute the former pixel writer.
+    // Bounds, cursor movement and allocation of the bitmap remain in readData().
+    void paintRun(int bits, int repeat) {
+        if (bits == 0) return; // Transparent columns must preserve earlier colors.
+        if (repeat == 1) {
+            for (int row = 0; row < SIXEL__LINE_LEN; row++) {
+                if ((bits & (1 << row)) != 0) mBitmap.setPixel(mCurX, mCurY + row, mColor);
+            }
+            return;
+        }
+        if (mRunPixels == null || mRunPixels.length < repeat) {
+            mRunPixels = new int[repeat];
+            mRunPixelsFilled = 0;
+        }
+        if (mRunColor != mColor) {
+            mRunColor = mColor;
+            mRunPixelsFilled = 0;
+        }
+        if (mRunPixelsFilled < repeat) {
+            Arrays.fill(mRunPixels, mRunPixelsFilled, repeat, mColor);
+            mRunPixelsFilled = repeat;
+        }
+        for (int row = 0; row < SIXEL__LINE_LEN; row++) {
+            if ((bits & (1 << row)) != 0)
+                mBitmap.setPixels(mRunPixels, 0, repeat, mCurX, mCurY + row, repeat, 1);
+        }
     }
 
     public boolean resize(int sixelWidth, int sixelHeight) {

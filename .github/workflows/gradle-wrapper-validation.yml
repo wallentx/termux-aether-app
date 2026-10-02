@@ -4,16 +4,23 @@ on:
   push:
     branches:
       - master
+      - dev
       - android-10
   pull_request:
     branches:
       - master
+      - dev
       - android-10
 
 jobs:
   validation:
+    # Same-repository long-lived branches are validated by the push event.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository ||
+      !contains(fromJSON('["master","dev","android-10"]'), github.head_ref)
     name: "Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: gradle/actions/wrapper-validation@5
+      - uses: actions/checkout@v7
+      - uses: gradle/actions/wrapper-validation@v6

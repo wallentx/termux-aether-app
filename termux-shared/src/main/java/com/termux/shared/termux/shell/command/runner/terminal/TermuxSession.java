@@ -120,6 +120,8 @@ public class TermuxSession {
 
         // Setup command args
         String[] commandArgs = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
+        // The login script selects the user's shell and starts it with -l itself.
+        boolean launchLoginShell = isLoginShell && commandArgs[0].equals(executionCommand.executable);
 
         executionCommand.executable = commandArgs[0];
         String processName = (isLoginShell ? "-" : "") + ShellUtils.getExecutableBasename(executionCommand.executable);
@@ -138,6 +140,12 @@ public class TermuxSession {
             executionCommand);
         if (additionalEnvironment != null)
             environment.putAll(additionalEnvironment);
+        String[] launchCommand = shellEnvironmentClient.setupShellCommandExecution(currentPackageContext,
+            commandArgs, launchLoginShell, environment);
+        // Keep the original command/argv[0] for reporting and legacy launches. A linker launch has
+        // its own argv containing the program path and an explicit login-shell option.
+        String launchExecutable = launchCommand == commandArgs ? executionCommand.executable : launchCommand[0];
+        String[] launchArguments = launchCommand == commandArgs ? executionCommand.arguments : launchCommand;
         List<String> environmentList = ShellEnvironmentUtils.convertEnvironmentToEnviron(environment);
         Collections.sort(environmentList);
         String[] environmentArray = environmentList.toArray(new String[0]);
@@ -153,8 +161,8 @@ public class TermuxSession {
             Joiner.on("\n").join(environmentArray));
 
         Logger.logDebug(LOG_TAG, "Running \"" + executionCommand.getCommandIdAndLabelLogString() + "\" TermuxSession");
-        TerminalSession terminalSession = new TerminalSession(executionCommand.executable,
-            executionCommand.workingDirectory, executionCommand.arguments, environmentArray,
+        TerminalSession terminalSession = new TerminalSession(launchExecutable,
+            executionCommand.workingDirectory, launchArguments, environmentArray,
             executionCommand.terminalTranscriptRows, terminalSessionClient);
 
         if (executionCommand.shellName != null) {

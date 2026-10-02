@@ -91,6 +91,36 @@ public class RectangularAreasTest extends TerminalTestCase {
 		assertEffectAttributesSet(effectLine(b, b, 0), effectLine(b, b, 0), effectLine(0, 0, 0));
 	}
 
+	public void testChangeAttributesClampsOriginBounds() {
+		assertOriginBounds('r');
+	}
+
+	public void testReverseAttributesClampsOriginBounds() {
+		assertOriginBounds('t');
+	}
+
+	private void assertOriginBounds(char command) {
+		// Test inner margins and margins reaching the screen edge, with both extents.
+		for (int end : new int[] { 4, 5 }) {
+			for (int extent : new int[] { 0, 2 }) {
+				for (String bounds : new String[] { ";;;", "1;1;99;99", "99;99;99;99" }) {
+					withTerminalSized(5, 5).enterString("ABCDEFGHIJKLMNOPQRSTUVWXY");
+					enterString("\033[?69h\033[2;" + end + "s\033[2;" + end + "r\033[?6h"
+						+ "\033[" + extent + "*x\033[" + bounds + ";1$" + command);
+					for (int row = 0; row < 5; row++) {
+						for (int col = 0; col < 5; col++) {
+							boolean changed = !bounds.startsWith("99") && row >= 1 && row < end && col >= 1 && col < end;
+							assertEquals("command=" + command + ", bounds=" + bounds + ", end=" + end
+								+ ", extent=" + extent + ", row=" + row + ", col=" + col,
+								changed ? TextStyle.CHARACTER_ATTRIBUTE_BOLD : 0,
+								TextStyle.decodeEffect(mTerminal.getScreen().getStyleAt(row, col)));
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/** http://vt100.net/docs/vt510-rm/DECCARA */
 	public void testReverseAttributesInRectangularArea() {
 		final int b = TextStyle.CHARACTER_ATTRIBUTE_BOLD;

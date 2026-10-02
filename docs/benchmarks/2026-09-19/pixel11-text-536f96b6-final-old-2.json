@@ -1,0 +1,137 @@
+{
+  "sdk": 37,
+  "device": "Pixel 11 Pro XL",
+  "label": "final-old-2",
+  "samples": 5,
+  "minimum_sample_ms": 150,
+  "scope": "append decoding, buffer writes and scrolling; excludes allocation\/setup, PTY and rendering",
+  "limitations": "Unpinned CPU and uncontrolled clocks; no instruction-level SIMD claim",
+  "results": [
+    {
+      "name": "ascii_64k",
+      "bytes_per_batch": 66560,
+      "one_batch_fingerprint": "843ac335d2ea531d",
+      "milliseconds": [
+        2.679350321428571,
+        2.6547107719298246,
+        2.6479824210526317,
+        2.6485946315789475,
+        2.654397350877193
+      ],
+      "median_ms": 2.654397350877193,
+      "mib_per_second": 23.91373788819637
+    },
+    {
+      "name": "ascii_4k_chunks",
+      "bytes_per_batch": 66560,
+      "one_batch_fingerprint": "843ac335d2ea531d",
+      "milliseconds": [
+        2.650217894736842,
+        2.650084947368421,
+        2.649100842105263,
+        2.649769245614035,
+        2.649895350877193
+      ],
+      "median_ms": 2.649895350877193,
+      "mib_per_second": 23.954365774854995
+    },
+    {
+      "name": "log_lines",
+      "bytes_per_batch": 37376,
+      "one_batch_fingerprint": "e7fce63aeaabbc92",
+      "milliseconds": [
+        1.50260233,
+        1.494251485148515,
+        1.4938479603960395,
+        1.4959988514851486,
+        1.4938678217821781
+      ],
+      "median_ms": 1.494251485148515,
+      "mib_per_second": 23.854439232133178
+    },
+    {
+      "name": "colored_lines",
+      "bytes_per_batch": 35328,
+      "one_batch_fingerprint": "bcdbac2f382b3393",
+      "milliseconds": [
+        1.3055744782608696,
+        1.3061027130434784,
+        1.3050566,
+        1.304828104347826,
+        1.3050124434782608
+      ],
+      "median_ms": 1.3050566,
+      "mib_per_second": 25.816049855615457
+    },
+    {
+      "name": "mixed_unicode",
+      "bytes_per_batch": 7552,
+      "one_batch_fingerprint": "1a67396fab5e4eb9",
+      "milliseconds": [
+        3.955542052631579,
+        3.9650801052631577,
+        3.9750815263157895,
+        3.9704721052631577,
+        3.961711447368421
+      ],
+      "median_ms": 3.9650801052631577,
+      "mib_per_second": 1.8163941827909178
+    },
+    {
+      "name": "single_byte_input",
+      "bytes_per_batch": 2080,
+      "one_batch_fingerprint": "a6e5776cb8ad4e9a",
+      "milliseconds": [
+        0.08466796783295712,
+        0.08646399077809798,
+        0.08542737243735764,
+        0.08470247460496615,
+        0.08469265801354402
+      ],
+      "median_ms": 0.08470247460496615,
+      "mib_per_second": 23.41894481095477
+    },
+    {
+      "name": "insert_mode",
+      "bytes_per_batch": 1408,
+      "one_batch_fingerprint": "7a408e85ac982e72",
+      "milliseconds": [
+        0.15962713085106384,
+        0.15959629680851065,
+        0.15960096170212765,
+        0.1596012829787234,
+        0.1595897585106383
+      ],
+      "median_ms": 0.15960096170212765,
+      "mib_per_second": 8.413316706738236
+    },
+    {
+      "name": "nowrap",
+      "bytes_per_batch": 8320,
+      "one_batch_fingerprint": "7a62043beac5be6e",
+      "milliseconds": [
+        0.3103107210743802,
+        0.3104848326446281,
+        0.30990701855670105,
+        0.30997954958677687,
+        0.30978210515463916
+      ],
+      "median_ms": 0.30997954958677687,
+      "mib_per_second": 25.597076720310437
+    },
+    {
+      "name": "line_drawing",
+      "bytes_per_batch": 5376,
+      "one_batch_fingerprint": "b0c1dc54ffad31ab",
+      "milliseconds": [
+        0.3456888387096774,
+        0.3457998479262673,
+        0.3467248822170901,
+        0.34765983796296296,
+        0.35155956908665104
+      ],
+      "median_ms": 0.3467248822170901,
+      "mib_per_second": 14.786804720262133
+    }
+  ]
+}

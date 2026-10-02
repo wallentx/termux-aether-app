@@ -60,6 +60,13 @@ public final class TerminalRenderer {
     /** Render the terminal to a canvas with at a specified row scroll, and an optional rectangular selection. */
     public final void render(TerminalEmulator mEmulator, Canvas canvas, int topRow,
                              int selectionY1, int selectionY2, int selectionX1, int selectionX2) {
+        render(mEmulator, canvas, topRow, selectionY1, selectionY2, selectionX1, selectionX2, null);
+    }
+
+    /** Render with optional URL cells underlined without changing terminal styles. */
+    public final void render(TerminalEmulator mEmulator, Canvas canvas, int topRow,
+                             int selectionY1, int selectionY2, int selectionX1, int selectionX2,
+                             boolean[][] linkUnderlineMask) {
         final boolean reverseVideo = mEmulator.isReverseVideo();
         final int endRow = topRow + mEmulator.mRows;
         final int columns = mEmulator.mColumns;
@@ -73,9 +80,13 @@ public final class TerminalRenderer {
         if (reverseVideo)
             canvas.drawColor(palette[TextStyle.COLOR_INDEX_FOREGROUND], PorterDuff.Mode.SRC);
 
+        Rect bitmapSrcRect = new Rect();
+        RectF bitmapDestRect = new RectF();
         float heightOffset = mFontLineSpacingAndAscent;
         for (int row = topRow; row < endRow; row++) {
             heightOffset += mFontLineSpacing;
+            final boolean[] linkUnderlineRow = linkUnderlineMask != null && row - topRow < linkUnderlineMask.length
+                ? linkUnderlineMask[row - topRow] : null;
 
             final int cursorX = (row == cursorRow && cursorVisible) ? cursorCol : -1;
             int selx1 = -1, selx2 = -1;
@@ -91,6 +102,7 @@ public final class TerminalRenderer {
             long lastRunStyle = 0;
             boolean lastRunInsideCursor = false;
             boolean lastRunInsideSelection = false;
+            boolean lastRunUnderlinedLink = false;
             int lastRunStartColumn = -1;
             int lastRunStartIndex = 0;
             boolean lastRunFontWidthMismatch = false;
@@ -104,27 +116,52 @@ public final class TerminalRenderer {
                 final int codePoint = charIsHighsurrogate ? Character.toCodePoint(charAtIndex, line[currentCharIndex + 1]) : charAtIndex;
                 final long style = lineObject.getStyle(column);
                 if (TextStyle.isTerminalBitmap(style)) {
-                    Bitmap bitmap = mEmulator.getScreen().getSixelBitmap(style);
-                    if (bitmap != null) {
+                    // Finish preceding text before changing to an image run.
+                    if (lastRunStartColumn >= 0 && column > lastRunStartColumn) {
+                        int cursorColor = lastRunInsideCursor ? palette[TextStyle.COLOR_INDEX_CURSOR] : 0;
+                        boolean invertCursor = lastRunInsideCursor && cursorShape == TerminalEmulator.TERMINAL_CURSOR_STYLE_BLOCK;
+                        drawTextRun(canvas, line, palette, heightOffset, lastRunStartColumn,
+                            column - lastRunStartColumn, lastRunStartIndex, currentCharIndex - lastRunStartIndex,
+                            measuredWidthForRun, cursorColor, cursorShape, lastRunStyle,
+                            reverseVideo || invertCursor || lastRunInsideSelection, lastRunUnderlinedLink);
+                    }
+                    int runEnd = column + 1;
+                    int bitmapNum = TextStyle.getTerminalBitmapNum(style);
+                    int bitmapX = TextStyle.getTerminalBitmapX(style);
+                    int bitmapY = TextStyle.getTerminalBitmapY(style);
+                    // Only merge horizontally contiguous slices of the same bitmap row.
+                    // Edits, clipping and neighboring images may interrupt that sequence.
+                    while (runEnd < columns) {
+                        long next = lineObject.getStyle(runEnd);
+                        if (TextStyle.getTerminalBitmapNum(next) != bitmapNum ||
+                            TextStyle.getTerminalBitmapY(next) != bitmapY ||
+                            TextStyle.getTerminalBitmapX(next) != bitmapX + runEnd - column) break;
+                        runEnd++;
+                    }
+                    Bitmap bitmap = screen.getSixelBitmap(style);
+                    if (bitmap != null && screen.getSixelRect(style, bitmapSrcRect)) {
+                        bitmapSrcRect.right += (runEnd - column - 1) * bitmapSrcRect.width();
                         float left = column * mFontWidth;
                         float top = heightOffset - mFontLineSpacing;
-                        Rect bitmapSrcRect = mEmulator.getScreen().getSixelRect(style);
-                        RectF bitmapDestRect = new RectF(left, top, left + mFontWidth, top + mFontLineSpacing);
+                        bitmapDestRect.set(left, top, runEnd * mFontWidth, top + mFontLineSpacing);
                         canvas.drawBitmap(bitmap, bitmapSrcRect, bitmapDestRect, null);
                     }
-                    column += 1;
+                    column = runEnd;
+                    currentCharIndex = column < columns ? lineObject.findStartOfColumn(column) : charsUsedInLine;
                     measuredWidthForRun = 0.f;
                     lastRunStyle = 0;
                     lastRunInsideCursor = false;
-                    lastRunStartColumn = column + 1;
+                    lastRunInsideSelection = false;
+                    lastRunUnderlinedLink = false;
+                    lastRunStartColumn = column;
                     lastRunStartIndex = currentCharIndex;
                     lastRunFontWidthMismatch = false;
-                    currentCharIndex += charsForCodePoint;
                     continue;
                 }
                 final int codePointWcWidth = WcWidth.width(codePoint);
                 final boolean insideCursor = (cursorX == column || (codePointWcWidth == 2 && cursorX == column + 1));
                 final boolean insideSelection = column >= selx1 && column <= selx2;
+                final boolean underlineLink = linkUnderlineRow != null && column < linkUnderlineRow.length && linkUnderlineRow[column];
 
                 // Check if the measured text width for this code point is not the same as that expected by wcwidth().
                 // This could happen for some fonts which are not truly monospace, or for more exotic characters such as
@@ -134,7 +171,8 @@ public final class TerminalRenderer {
                     currentCharIndex, charsForCodePoint);
                 final boolean fontWidthMismatch = Math.abs(measuredCodePointWidth / mFontWidth - codePointWcWidth) > 0.01;
 
-                if (style != lastRunStyle || insideCursor != lastRunInsideCursor || insideSelection != lastRunInsideSelection || fontWidthMismatch || lastRunFontWidthMismatch) {
+                if (style != lastRunStyle || insideCursor != lastRunInsideCursor || insideSelection != lastRunInsideSelection ||
+                    underlineLink != lastRunUnderlinedLink || fontWidthMismatch || lastRunFontWidthMismatch) {
                     if (column == 0 || column == lastRunStartColumn) {
                         // Skip first column as there is nothing to draw, just record the current style.
                     } else {
@@ -147,12 +185,14 @@ public final class TerminalRenderer {
                         }
                         drawTextRun(canvas, line, palette, heightOffset, lastRunStartColumn, columnWidthSinceLastRun,
                             lastRunStartIndex, charsSinceLastRun, measuredWidthForRun,
-                            cursorColor, cursorShape, lastRunStyle, reverseVideo || invertCursorTextColor || lastRunInsideSelection);
+                            cursorColor, cursorShape, lastRunStyle, reverseVideo || invertCursorTextColor || lastRunInsideSelection,
+                            lastRunUnderlinedLink);
                     }
                     measuredWidthForRun = 0.f;
                     lastRunStyle = style;
                     lastRunInsideCursor = insideCursor;
                     lastRunInsideSelection = insideSelection;
+                    lastRunUnderlinedLink = underlineLink;
                     lastRunStartColumn = column;
                     lastRunStartIndex = currentCharIndex;
                     lastRunFontWidthMismatch = fontWidthMismatch;
@@ -174,19 +214,22 @@ public final class TerminalRenderer {
             if (lastRunInsideCursor && cursorShape == TerminalEmulator.TERMINAL_CURSOR_STYLE_BLOCK) {
                 invertCursorTextColor = true;
             }
-            drawTextRun(canvas, line, palette, heightOffset, lastRunStartColumn, columnWidthSinceLastRun, lastRunStartIndex, charsSinceLastRun,
-                measuredWidthForRun, cursorColor, cursorShape, lastRunStyle, reverseVideo || invertCursorTextColor || lastRunInsideSelection);
+            if (columnWidthSinceLastRun > 0) {
+                drawTextRun(canvas, line, palette, heightOffset, lastRunStartColumn, columnWidthSinceLastRun, lastRunStartIndex, charsSinceLastRun,
+                    measuredWidthForRun, cursorColor, cursorShape, lastRunStyle, reverseVideo || invertCursorTextColor || lastRunInsideSelection,
+                    lastRunUnderlinedLink);
+            }
         }
     }
 
     private void drawTextRun(Canvas canvas, char[] text, int[] palette, float y, int startColumn, int runWidthColumns,
                              int startCharIndex, int runWidthChars, float mes, int cursor, int cursorStyle,
-                             long textStyle, boolean reverseVideo) {
+                             long textStyle, boolean reverseVideo, boolean linkUnderline) {
         int foreColor = TextStyle.decodeForeColor(textStyle);
         final int effect = TextStyle.decodeEffect(textStyle);
         int backColor = TextStyle.decodeBackColor(textStyle);
         final boolean bold = (effect & (TextStyle.CHARACTER_ATTRIBUTE_BOLD | TextStyle.CHARACTER_ATTRIBUTE_BLINK)) != 0;
-        final boolean underline = (effect & TextStyle.CHARACTER_ATTRIBUTE_UNDERLINE) != 0;
+        final boolean underline = linkUnderline || (effect & TextStyle.CHARACTER_ATTRIBUTE_UNDERLINE) != 0;
         final boolean italic = (effect & TextStyle.CHARACTER_ATTRIBUTE_ITALIC) != 0;
         final boolean strikeThrough = (effect & TextStyle.CHARACTER_ATTRIBUTE_STRIKETHROUGH) != 0;
         final boolean dim = (effect & TextStyle.CHARACTER_ATTRIBUTE_DIM) != 0;

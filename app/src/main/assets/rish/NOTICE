@@ -1,0 +1,8 @@
+Shizuku shell loader, by RikkaApps and contributors.
+Unmodified assets/rish_shizuku.dex from Shizuku v13.6.0.r1086.2650830c.
+Source: https://github.com/RikkaApps/Shizuku/tree/v13.6.0/shell
+Release: https://github.com/RikkaApps/Shizuku/releases/tag/v13.6.0
+APK SHA-256: 6e273ab0e991c4e79bc8b1bbb9b9dd739ccac1a8712a541a214078886b7b790f
+DEX SHA-256: 1953c1fd9708904f8fc1f67774843b4cc3d03e5f2a578ff4d654d0625456bc28
+Licensed under Apache-2.0; see LICENSE.
+The Termux launcher is fork-specific; the upstream loader is unchanged.

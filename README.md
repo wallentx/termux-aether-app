@@ -1,290 +1,189 @@
-# Termux application
-
-[![Build status](https://github.com/termux/termux-app/workflows/Build/badge.svg)](https://github.com/termux/termux-app/actions)
-[![Testing status](https://github.com/termux/termux-app/workflows/Unit%20tests/badge.svg)](https://github.com/termux/termux-app/actions)
-[![Join the chat at https://gitter.im/termux/termux](https://badges.gitter.im/termux/termux.svg)](https://gitter.im/termux/termux)
-[![Join the Termux discord server](https://img.shields.io/discord/641256914684084234.svg?label=&logo=discord&logoColor=ffffff&color=5865F2)](https://discord.gg/HXpF69X)
-[![Termux library releases at Jitpack](https://jitpack.io/v/termux/termux-app.svg)](https://jitpack.io/#termux/termux-app)
-
-
-[Termux](https://termux.dev) is an Android terminal application and Linux environment.
-
-Note that this repository is for the app itself (the user interface and the terminal emulation). For the packages installable inside the app, see [termux/termux-packages](https://github.com/termux/termux-packages).
-
-Quick how-to about Termux package management is available at [Package Management](https://github.com/termux/termux-packages/wiki/Package-Management). It also has info on how to fix **`repository is under maintenance or down`** errors when running `apt` or `pkg` commands.
-
-**We are looking for Termux Android application maintainers.**
-
-***
-
-**NOTICE: Termux may be unstable on Android 12+.** Android OS will kill any (phantom) processes greater than 32 (limit is for all apps combined) and also kill any processes using excessive CPU. You may get `[Process completed (signal 9) - press Enter]` message in the terminal without actually exiting the shell process yourself. Check the related issue [#2366](https://github.com/termux/termux-app/issues/2366), [issue tracker](https://issuetracker.google.com/u/1/issues/205156966), [phantom cached and empty processes docs](https://github.com/agnostic-apollo/Android-Docs/blob/master/en/docs/apps/processes/phantom-cached-and-empty-processes.md) and [this TLDR comment](https://github.com/termux/termux-app/issues/2366#issuecomment-1237468220) on how to disable trimming of phantom and excessive cpu usage processes. A proper docs page will be added later. An option to disable the killing should be available in Android 12L or 13, so upgrade at your own risk if you are on Android 11, specially if you are not rooted.
-
-***
-
-## Contents
-- [Termux App and Plugins](#termux-app-and-plugins)
-- [Installation](#installation)
-- [Uninstallation](#uninstallation)
-- [Important Links](#important-links)
-- [Debugging](#debugging)
-- [For Maintainers and Contributors](#for-maintainers-and-contributors)
-- [Forking](#forking)
-- [Sponsors and Funders](#sponsors-and-funders)
-##
-
-
-
-## Termux App and Plugins
-
-The core [Termux](https://github.com/termux/termux-app) app comes with the following optional plugin apps.
-
-- [Termux:API](https://github.com/termux/termux-api)
-- [Termux:Boot](https://github.com/termux/termux-boot)
-- [Termux:Float](https://github.com/termux/termux-float)
-- [Termux:Styling](https://github.com/termux/termux-styling)
-- [Termux:Tasker](https://github.com/termux/termux-tasker)
-- [Termux:Widget](https://github.com/termux/termux-widget)
-##
-
-
-
-## Installation
-
-Latest version is `v0.118.3`.
-
-**NOTICE: It is highly recommended that you update to `v0.118.0` or higher ASAP for various bug fixes, including a critical world-readable vulnerability reported [here](https://termux.github.io/general/2022/02/15/termux-apps-vulnerability-disclosures.html). See [below](#google-play-store-experimental-branch) for information regarding Termux on Google Play.**
-
-Termux can be obtained through various sources listed below for **only** Android `>= 7` with full support for apps and packages.
-
-Support for both app and packages was dropped for Android `5` and `6` on [2020-01-01](https://www.reddit.com/r/termux/comments/dnzdbs/end_of_android56_support_on_20200101/) at `v0.83`, however it was re-added just for the app *without any support for package updates* on [2022-05-24](https://github.com/termux/termux-app/pull/2740) via the [GitHub](#github) sources. Check [here](https://github.com/termux/termux-app/wiki/Termux-on-android-5-or-6) for the details.
-
-The APK files of different sources are signed with different signature keys. The `Termux` app and all its plugins use the same [`sharedUserId`](https://developer.android.com/guide/topics/manifest/manifest-element) `com.termux` and so all their APKs installed on a device must have been signed with the same signature key to work together and so they must all be installed from the same source. Do not attempt to mix them together, i.e do not try to install an app or plugin from `F-Droid` and another one from a different source like `GitHub`. Android Package Manager will also normally not allow installation of APKs with different signatures and you will get errors on installation like `App not installed`, `Failed to install due to an unknown error`, `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, `INSTALL_FAILED_SHARED_USER_INCOMPATIBLE`, `signatures do not match previously installed version`, etc. This restriction can be bypassed with root or with custom roms.
-
-If you wish to install from a different source, then you must **uninstall any and all existing Termux or its plugin app APKs** from your device first, then install all new APKs from the same new source. Check [Uninstallation](#uninstallation) section for details. You may also want to consider [Backing up Termux](https://wiki.termux.dev/wiki/Backing_up_Termux) before the uninstallation so that you can restore it after re-installing from Termux different source.
-
-In the following paragraphs, *"bootstrap"* refers to the minimal packages that are shipped with the `termux-app` itself to start a working shell environment. Its zips are built and released [here](https://github.com/termux/termux-packages/releases).
-
-### F-Droid
-
-Termux application can be obtained from `F-Droid` from [here](https://f-droid.org/en/packages/com.termux/).
-
-You **do not** need to download the `F-Droid` app (via the `Download F-Droid` link) to install Termux. You can download the Termux APK directly from the site by clicking the `Download APK` link at the bottom of each version section.
-
-It usually takes a few days (or even a week or more) for updates to be available on `F-Droid` once an update has been released on `GitHub`. The `F-Droid` releases are built and published by `F-Droid` once they [detect](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/com.termux.yml) a new `GitHub` release. The Termux maintainers **do not** have any control over the building and publishing of the Termux apps on `F-Droid`. Moreover, the Termux maintainers also do not have access to the APK signing keys of `F-Droid` releases, so we cannot release an APK ourselves on `GitHub` that would be compatible with `F-Droid` releases.
-
-The `F-Droid` app often may not notify you of updates and you will manually have to do a pull down swipe action in the `Updates` tab of the app for it to check updates. Make sure battery optimizations are disabled for the app, check https://dontkillmyapp.com/ for details on how to do that.
-
-Only a universal APK is released, which will work on all supported architectures. The APK and bootstrap installation size will be `~180MB`. `F-Droid` does [not support](https://github.com/termux/termux-app/pull/1904) architecture specific APKs.
-
-### GitHub
-
-Termux application can be obtained on `GitHub` either from [`GitHub Releases`](https://github.com/termux/termux-app/releases) for version `>= 0.118.0` or from [`GitHub Build Action`](https://github.com/termux/termux-app/actions/workflows/debug_build.yml?query=branch%3Amaster+event%3Apush) workflows. **For android `>= 7`, only install `apt-android-7` variants. For android `5` and `6`, only install `apt-android-5` variants.**
-
-The APKs for `GitHub Releases` will be listed under `Assets` drop-down of a release. These are automatically attached when a new version is released.
-
-The APKs for `GitHub Build` action workflows will be listed under `Artifacts` section of a workflow run. These are created for each commit/push done to the repository and can be used by users who don't want to wait for releases and want to try out the latest features immediately or want to test their pull requests. Note that for action workflows, you need to be [**logged into a `GitHub` account**](https://github.com/login) for the `Artifacts` links to be enabled/clickable. If you are using the [`GitHub` app](https://github.com/mobile), then make sure to open workflow link in a browser like Chrome or Firefox that has your GitHub account logged in since the in-app browser may not be logged in.
-
-The APKs for both of these are [`debuggable`](https://developer.android.com/studio/debug) and are compatible with each other but they are not compatible with other sources.
-
-Both universal and architecture specific APKs are released. The APK and bootstrap installation size will be `~180MB` if using universal and `~120MB` if using architecture specific. Check [here](https://github.com/termux/termux-app/issues/2153) for details.
-
-**Security warning**: APK files on GitHub are signed with a test key that has been [shared with community](https://github.com/termux/termux-app/blob/master/app/testkey_untrusted.jks). This IS NOT an official developer key and everyone can use it to generate releases for own testing. Be very careful when using Termux GitHub builds obtained elsewhere except https://github.com/termux/termux-app. Everyone is able to use it to forge a malicious Termux update installable over the GitHub build. Think twice about installing Termux builds distributed via Telegram or other social media. If your device get caught by malware, we will not be able to help you.
-
-The [test key](https://github.com/termux/termux-app/blob/master/app/testkey_untrusted.jks) shall not be used to impersonate @termux and can't be used for this anyway. This key is not trusted by us and it is quite easy to detect its use in user generated content.
-
-<details>
-<summary>Keystore information</summary>
-
-```
-Alias name: alias
-Creation date: Oct 4, 2019
-Entry type: PrivateKeyEntry
-Certificate chain length: 1
-Certificate[1]:
-Owner: CN=APK Signer, OU=Earth, O=Earth
-Issuer: CN=APK Signer, OU=Earth, O=Earth
-Serial number: 29be297b
-Valid from: Wed Sep 04 02:03:24 EEST 2019 until: Tue Oct 26 02:03:24 EEST 2049
-Certificate fingerprints:
-         SHA1: 51:79:55:EA:BF:69:FC:05:7C:41:C7:D3:79:DB:BC:EF:20:AD:85:F2
-         SHA256: B6:DA:01:48:0E:EF:D5:FB:F2:CD:37:71:B8:D1:02:1E:C7:91:30:4B:DD:6C:4B:F4:1D:3F:AA:BA:D4:8E:E5:E1
-Signature algorithm name: SHA1withRSA (disabled)
-Subject Public Key Algorithm: 2048-bit RSA key
-Version: 3
-```
-
-</details>
-
-### Google Play Store **(Experimental branch)**
-
-There is currently a build of Termux available on Google Play for Android 11+ devices, with extensive adjustments in order to pass policy requirements there. This is under development and has missing functionality and bugs (see [here](https://github.com/termux-play-store/) for status updates) compared to the stable F-Droid build, which is why most users who can should still use F-Droid or GitHub build as mentioned above.
-
-Currently, Google Play will try to update installations away from F-Droid ones. Updating will still fail as [sharedUserId](https://developer.android.com/guide/topics/manifest/manifest-element#uid) has been removed. A planned 0.118.1 F-Droid release will fix this by setting a higher version code than used for the PlayStore app. Meanwhile, to prevent Google Play from attempting to download and then fail to install the Google Play releases over existing installations, you can open the Termux apps pages on Google Play and then click on the 3 dots options button in the top right and then disable the Enable auto update toggle. However, the Termux apps updates will still show in the PlayStore app updates list.
-
-If you want to help out with testing the Google Play build (or cannot install Termux from other sources), be aware that it's built from a separate repository (https://github.com/termux-play-store/) - be sure to report issues [there](https://github.com/termux-play-store/termux-issues/issues/new/choose), as any issues encountered might very well be specific to that repository.
-
-## Uninstallation
-
-Uninstallation may be required if a user doesn't want Termux installed in their device anymore or is switching to a different [install source](#installation). You may also want to consider [Backing up Termux](https://wiki.termux.com/wiki/Backing_up_Termux) before the uninstallation.
-
-To uninstall Termux completely, you must uninstall **any and all existing Termux or its plugin app APKs** listed in [Termux App and Plugins](#termux-app-and-plugins).
-
-Go to `Android Settings` -> `Applications` and then look for those apps. You can also use the search feature if it’s available on your device and search `termux` in the applications list.
-
-Even if you think you have not installed any of the plugins, it's strongly suggested to go through the application list in Android settings and double-check.
-##
-
-
-
-## Important Links
-
-### Community
-All community links are available [here](https://wiki.termux.com/wiki/Community).
-
-The main ones are the following.
-
-- [Termux Reddit community](https://reddit.com/r/termux)
-- [Termux User Matrix Channel](https://matrix.to/#/#termux_termux:gitter.im) ([Gitter](https://gitter.im/termux/termux))
-- [Termux Dev Matrix Channel](https://matrix.to/#/#termux_dev:gitter.im) ([Gitter](https://gitter.im/termux/dev))
-- [Termux X (Twitter)](https://twitter.com/termuxdevs)
-- [Termux Support Email](mailto:support@termux.dev)
-
-### Wikis
-
-- [Termux Wiki](https://wiki.termux.com/wiki/)
-- [Termux App Wiki](https://github.com/termux/termux-app/wiki)
-- [Termux Packages Wiki](https://github.com/termux/termux-packages/wiki)
-
-### Miscellaneous
-- [FAQ](https://wiki.termux.com/wiki/FAQ)
-- [Termux File System Layout](https://github.com/termux/termux-packages/wiki/Termux-file-system-layout)
-- [Differences From Linux](https://wiki.termux.com/wiki/Differences_from_Linux)
-- [Package Management](https://wiki.termux.com/wiki/Package_Management)
-- [Remote Access](https://wiki.termux.com/wiki/Remote_Access)
-- [Backing up Termux](https://wiki.termux.com/wiki/Backing_up_Termux)
-- [Terminal Settings](https://wiki.termux.com/wiki/Terminal_Settings)
-- [Touch Keyboard](https://wiki.termux.com/wiki/Touch_Keyboard)
-- [Android Storage and Sharing Data with Other Apps](https://wiki.termux.com/wiki/Internal_and_external_storage)
-- [Android APIs](https://wiki.termux.com/wiki/Termux:API)
-- [Moved Termux Packages Hosting From Bintray to IPFS](https://github.com/termux/termux-packages/issues/6348)
-- [Running Commands in Termux From Other Apps via `RUN_COMMAND` intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
-- [Termux and Android 10](https://github.com/termux/termux-packages/wiki/Termux-and-Android-10)
-
-
-### Terminal
-
-<details>
-<summary></summary>
-
-### Terminal resources
-
-- [XTerm control sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)
-- [vt100.net](https://vt100.net/)
-- [Terminal codes (ANSI and terminfo equivalents)](https://wiki.bash-hackers.org/scripting/terminalcodes)
-
-### Terminal emulators
-
-- VTE (libvte): Terminal emulator widget for GTK+, mainly used in gnome-terminal. [Source](https://github.com/GNOME/vte), [Open Issues](https://bugzilla.gnome.org/buglist.cgi?quicksearch=product%3A%22vte%22+), and [All (including closed) issues](https://bugzilla.gnome.org/buglist.cgi?bug_status=RESOLVED&bug_status=VERIFIED&chfield=resolution&chfieldfrom=-2000d&chfieldvalue=FIXED&product=vte&resolution=FIXED).
-
-- iTerm 2: OS X terminal application. [Source](https://github.com/gnachman/iTerm2), [Issues](https://gitlab.com/gnachman/iterm2/issues) and [Documentation](https://iterm2.com/documentation.html) (which includes [iTerm2 proprietary escape codes](https://iterm2.com/documentation-escape-codes.html)).
-
-- Konsole: KDE terminal application. [Source](https://projects.kde.org/projects/kde/applications/konsole/repository), in particular [tests](https://projects.kde.org/projects/kde/applications/konsole/repository/revisions/master/show/tests), [Bugs](https://bugs.kde.org/buglist.cgi?bug_severity=critical&bug_severity=grave&bug_severity=major&bug_severity=crash&bug_severity=normal&bug_severity=minor&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&product=konsole) and [Wishes](https://bugs.kde.org/buglist.cgi?bug_severity=wishlist&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&product=konsole).
-
-- hterm: JavaScript terminal implementation from Chromium. [Source](https://github.com/chromium/hterm), including [tests](https://github.com/chromium/hterm/blob/master/js/hterm_vt_tests.js), and [Google group](https://groups.google.com/a/chromium.org/forum/#!forum/chromium-hterm).
-
-- xterm: The grandfather of terminal emulators. [Source](https://invisible-island.net/datafiles/release/xterm.tar.gz).
-
-- Connectbot: Android SSH client. [Source](https://github.com/connectbot/connectbot)
-
-- Android Terminal Emulator: Android terminal app which Termux terminal handling is based on. Inactive. [Source](https://github.com/jackpal/Android-Terminal-Emulator).
-</details>
-
-##
-
-
-
-### Debugging
-
-You can help debug problems of the `Termux` app and its plugins by setting appropriate `logcat` `Log Level` in `Termux` app settings -> `<APP_NAME>` -> `Debugging` -> `Log Level` (Requires `Termux` app version `>= 0.118.0`). The `Log Level` defaults to `Normal` and log level `Verbose` currently logs additional information. Its best to revert log level to `Normal` after you have finished debugging since private data may otherwise be passed to `logcat` during normal operation and moreover, additional logging increases execution time.
-
-The plugin apps **do not execute the commands themselves** but send execution intents to `Termux` app, which has its own log level which can be set in `Termux` app settings -> `Termux` -> `Debugging` -> `Log Level`. So you must set log level for both `Termux` and the respective plugin app settings to get all the info.
-
-Once log levels have been set, you can run the `logcat` command in `Termux` app terminal to view the logs in realtime (`Ctrl+c` to stop) or use `logcat -d > logcat.txt` to take a dump of the log. You can also view the logs from a PC over `ADB`. For more information, check official android `logcat` guide [here](https://developer.android.com/studio/command-line/logcat).
-
-Moreover, users can generate termux files `stat` info and `logcat` dump automatically too with terminal's long hold options menu `More` -> `Report Issue` option and selecting `YES` in the prompt shown to add debug info. This can be helpful for reporting and debugging other issues. If the report generated is too large, then `Save To File` option in context menu (3 dots on top right) of `ReportActivity` can be used and the file viewed/shared instead.
-
-Users must post complete report (optionally without sensitive info) when reporting issues. Issues opened with **(partial) screenshots of error reports** instead of text will likely be automatically closed/deleted.
-
-##### Log Levels
-
-- `Off` - Log nothing.
-- `Normal` - Start logging error, warn and info messages and stacktraces.
-- `Debug` - Start logging debug messages.
-- `Verbose` - Start logging verbose messages.
-##
-
-
-
-## For Maintainers and Contributors
-
-The [termux-shared](termux-shared) library was added in [`v0.109`](https://github.com/termux/termux-app/releases/tag/v0.109). It defines shared constants and utils of the Termux app and its plugins. It was created to allow for the removal of all hardcoded paths in the Termux app. Some of the termux plugins are using this as well and rest will in future. If you are contributing code that is using a constant or a util that may be shared, then define it in `termux-shared` library if it currently doesn't exist and reference it from there. Update the relevant changelogs as well. Pull requests using hardcoded values **will/should not** be accepted. Termux app and plugin specific classes must be added under `com.termux.shared.termux` package and general classes outside it. The [`termux-shared` `LICENSE`](termux-shared/LICENSE.md) must also be checked and updated if necessary when contributing code. The licenses of any external library or code must be honoured.
-
-The main Termux constants are defined by [`TermuxConstants`](https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java) class. It also contains information on how to fork Termux or build it with your own package name. Changing the package name will require building the bootstrap zip packages and other packages with the new `$PREFIX`, check [Building Packages](https://github.com/termux/termux-packages/wiki/Building-packages) for more info.
-
-Check [Termux Libraries](https://github.com/termux/termux-app/wiki/Termux-Libraries) for how to import termux libraries in plugin apps and [Forking and Local Development](https://github.com/termux/termux-app/wiki/Termux-Libraries#forking-and-local-development) for how to update termux libraries for plugins.
-
-The `versionName` in `build.gradle` files of Termux and its plugin apps must follow the [semantic version `2.0.0` spec](https://semver.org/spec/v2.0.0.html) in the format `major.minor.patch(-prerelease)(+buildmetadata)`. When bumping `versionName` in `build.gradle` files and when creating a tag for new releases on GitHub, make sure to include the patch number as well, like `v0.1.0` instead of just `v0.1`. The `build.gradle` files and `attach_debug_apks_to_release` workflow validates the version as well and the build/attachment will fail if `versionName` does not follow the spec.
-
-### Commit Messages Guidelines
-
-Commit messages **must** use the [Conventional Commits](https://www.conventionalcommits.org) spec so that chagelogs as per the [Keep a Changelog](https://github.com/olivierlacan/keep-a-changelog) spec can automatically be generated by the [`create-conventional-changelog`](https://github.com/termux/create-conventional-changelog) script, check its repo for further details on the spec. **The first letter for `type` and `description` must be capital and description should be in the present tense.** The space after the colon `:` is necessary. For a breaking change, add an exclamation mark `!` before the colon `:`, so that it is highlighted in the chagelog automatically.
-
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
+# Termux-Æther
+
+Coordinated suite releases: [installation, upgrades and component dependencies](https://github.com/wallentx/termux-aether-app/blob/dev/docs/RELEASES.md). The `v1000.0.0` baseline keeps existing app IDs and data paths.
+
+[![Build](https://github.com/wallentx/termux-aether-app/actions/workflows/debug_build.yml/badge.svg?branch=dev)](https://github.com/wallentx/termux-aether-app/actions/workflows/debug_build.yml?query=branch%3Adev)
+[![Tests](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml/badge.svg?branch=dev)](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml?query=branch%3Adev)
+
+A Termux fork for modern Android: a Pacman-based terminal, a bundled Linux/glibc
+compatibility runtime, and an optional hardware-virtualized Arch workspace.
+Development and device testing focus on the **Pixel 11 Pro XL running Android 17**.
+
+Built on [Termux](https://github.com/termux/termux-app) and
+[Termux Monet](https://github.com/HardcodedCat/termux-monet), with downstream
+compatibility fixes and measured terminal optimizations. This is an independent
+fork; report fork-specific issues [here](https://github.com/wallentx/termux-aether-app/issues).
+
+## Performance highlights
+
+Measured on a **Pixel 11 Pro XL running Android 17**, September 19, 2026.
+These are improvements to individual operations against this fork's previous
+implementations, not a whole-app comparison with stock Termux.
+
+| Optimized operation | Before | After | Improvement |
+| --- | ---: | ---: | ---: |
+| Sixel decode, long repeats of 8192 pixels | 13.620 ms/image | 0.152 ms/image | **89.9x faster** |
+| Copy a 160-column simple-text row | 2.409 us | 0.058 us | **41.8x faster** |
+| Clear a 160x48 simple-text buffer | 108.0 us | 2.71 us | **39.9x faster** |
+| Bulk ASCII parsing and buffer updates | 24 MiB/s | 417 MiB/s | **17.4x throughput** |
+| Bitmap growth, 1920x1080 to 1920x1180 | 4.45 ms | 2.72 ms | **39% less time** |
+
+The largest sixel gain is a synthetic long-repeat case; repeats of 16 pixels
+improved **7.0x**, and overpainting improved **22.4x**. Colored-text throughput
+improved **6.7x**. Single-column sixel, single-byte input, and Unicode fallback
+controls were broadly unchanged. These results do not establish matching gains
+in frame rate, battery life, or arbitrary shell programs. The Java/Bitmap changes
+are batching and copying optimizations; no hand-written SIMD is claimed.
+
+A further scalar width-classification fast path measured **1.42x throughput for
+ASCII** and **1.22x for mixed text** under Android ART. All Unicode code-point
+widths matched the baseline. This isolated routine result still needs an APK
+frame comparison; see the [width benchmark](docs/PERFORMANCE.md#printable-ascii-width-classification-september-22-2026).
+
+Release tooling also improved: single-pass source verification took **88.91 ms
+instead of 200.45 ms**, with **29.3% lower peak process memory**, in a September 21
+archive benchmark. This is a packaging-tool improvement, not terminal startup time.
+
+[Methods, baseline commits, limitations, and raw results](docs/PERFORMANCE.md).
+
+## What sets it apart
+
+- **Modern Android support.** Target SDK 37, compiled against SDK 37.2, with
+  app-private command execution adapted to modern Android restrictions. Includes
+  Android 17 text-selection fixes, terminal redraw and session-drawer fixes,
+  keyboard adjustments, and an in-app **Keep screen on** option.
+- **Pacman by default.** Fresh installations use the Termux-Pacman bootstrap and
+  Android-compatible package feed. Existing APT installations are not silently
+  converted. Pacman here manages Termux packages; it does not turn Android into Arch.
+- **Native Linux binary compatibility.** The bundled **Aether** runtime runs
+  supported dynamically linked Linux ARM64/glibc programs directly from Termux,
+  without PRoot or Arch. The compatibility runtime itself does not need Shizuku;
+  normal terminal sessions use the Shizuku execution service. It provides Android-backed DNS, common
+  certificate-path mappings, device identity, and mixed Linux/Android child-process
+  handling. A complete Geekbench CPU run has passed in the native app context.
+- **An optional real Arch VM.** The matching API companion runs Arch Linux ARM
+  through Android's virtualization framework. Open it with `Æ`, or run commands
+  with `æ`. Persistent storage, networking, selected-directory sharing, on-demand
+  startup, optional suspension, disk growth, and live memory adjustment are available.
+- **Faster terminal hot paths.** Bulk ASCII parsing, buffer fills/copies, sixel
+  decoding, and bitmap copying reduce work in common text and image operations.
+  Sixel support is inherited and extended; it is not exclusive to this fork.
+
+## What comes with it
+
+| Component | Included or separate? |
+| --- | --- |
+| Terminal app, Monet theming, Pacman bootstrap | Included in the default ARM64 APK |
+| Shizuku-backed terminal/background commands and shared-storage bridge | Included; requires the separately installed, running Shizuku service |
+| Aether glibc 2.44 runtime, `aether-run`, and execution probe | Included and installed when Termux opens |
+| Device capabilities, thermal diagnostics, Shizuku access, and Arch VM control | Separate [Termux-Æther:API companion](https://github.com/wallentx/termux-aether-api) and [CLI package](https://github.com/wallentx/termux-aether-api-package/tree/dev) |
+| Arch kernel/root filesystem and networking helper | Separate guest artifact and setup; not embedded in the terminal APK |
+| Validation scripts and benchmark harnesses | In this repository and CI artifacts; optional tools and Geekbench are not bundled |
+
+Aether leaves package-managed glibc files alone. Some Linux programs need additional
+libraries or encounter Android filesystem/syscall restrictions; this is not universal
+Linux compatibility. See the [runtime guide](scripts/aether/README.md).
+
+## Verified SIMD and native-library acceleration
+
+On the same Pixel, a September 21 audit confirmed that installed native libraries
+already use hardware acceleration. These comparisons enable versus disable
+acceleration in the **same library**; they are not fork-versus-stock Termux gains
+or new optimizations added by this fork.
+
+| Workload | Acceleration disabled | Normal dispatch | Throughput gain |
+| --- | ---: | ---: | ---: |
+| libjpeg-turbo 3.2.0 JPEG encode | 339.01 MiB/s | 512.59 MiB/s | 1.51x |
+| libjpeg-turbo 3.2.0 JPEG decode | 281.41 MiB/s | 399.58 MiB/s | 1.42x |
+| OpenSSL 3.6.3 SHA-256 | 259.57 MiB/s | 2382.33 MiB/s | 9.18x |
+
+The JPEG results compare normal SIMD dispatch with SIMD disabled; SHA-256 uses
+ARM cryptographic acceleration, rather than general-purpose SIMD. JPEG output
+and SHA-256 digests matched between modes.
+
+A separate comparison found **3.62x to 5.75x faster whole-buffer decompression**
+with libdeflate than zlib on two synthetic inputs. This compares library
+implementations, not SIMD on/off, and remains a candidate for targeted integration;
+it does not change the default compression library. These short, warm-buffer
+benchmarks do not establish whole-app speedups or battery savings. A matched
+AVF-versus-PRoot speedup has not been established.
+
+[Native-package audit, raw results, and reproduction instructions](docs/PERFORMANCE.md#installed-native-package-audit-september-21-2026).
+
+## Install
+
+1. For normal installation and upgrades, use the [Pacman suite release](https://github.com/wallentx/termux-aether-app/releases/latest) and [upgrade guide](docs/RELEASES.md). For development snapshots, download the ARM64 APK from a successful
+   [Build run on `dev`](https://github.com/wallentx/termux-aether-app/actions/workflows/debug_build.yml?query=branch%3Adev+event%3Apush).
+   GitHub requires sign-in to download Actions artifacts. Normal builds produce
+   one `pacman-android-7` ARM64 APK, checksums, and matching Aether sources.
+2. Install the APK. The Android package remains `com.termux`, so an update with a
+   compatible signature preserves the existing environment. An incompatible
+   installation needs a backup and a planned migration; do not uninstall it just
+   to try this fork. APK updates do not convert an APT prefix to Pacman.
+3. Install and start [Shizuku](https://shizuku.rikka.app/guide/setup/), then authorize
+   Aether's connection prompt. Normal sessions on modern Android run through
+   `run-as` with the Termux UID, allowing ordinary native execution without
+   rebuilding every Go program. If Shizuku is unavailable, setup is shown instead
+   of silently changing execution mode. A recovery shell remains explicitly
+   available. Background commands also require the service and report an error
+   when it is unavailable. On an unrooted device, restart Shizuku after reboot.
+   If Shizuku is already running but Termux is not connected, **Connect** requests
+   a fresh connection from Shizuku and returns to Termux. **Open Shizuku** opens
+   its management screen when you need to start the service.
+4. For device integration or Arch, follow the
+   [API companion setup](https://github.com/wallentx/termux-aether-api#setup).
+   The app and companion must use matching signing certificates. Arch additionally
+   needs a supported Android virtualization build, an authorized Shizuku service,
+   the CLI wrappers, and the separately staged guest image.
+
+These are development builds, currently using Termux's public debug test key,
+not a private release-signing identity. Obtain both APKs from these repositories.
+The project name does not change Android package IDs, data paths, or CLI names.
+
+`run-as` requires a debuggable APK, so the release build type also keeps that
+flag. Sessions preserve Android's runtime environment and use a dedicated PTY
+service for exit status and cleanup. Background commands use separate stdin,
+stdout and stderr pipes through the same service. Shared storage is exposed through
+`~/storage` shortcuts and `$EXTERNAL_STORAGE`; custom shortcuts are preserved.
+Literal `/sdcard` and `/storage/emulated/0` paths are not transparently remapped.
+See [session validation and limitations](scripts/session-validate/README.md).
+
+The default build is tailored to ARM64 Pixel testing; other ABIs and APT bootstraps
+remain available through [explicit build profiles](docs/BUILD_PROFILES.md).
+They are not covered by the Pixel validation results. APKs are built in CI; native companion packages can be built on aarch64 Termux.
+
+## Try it
+
+Run the included Aether compatibility check from the installed Termux app:
+
+```sh
+aether-run "$HOME/../aether/aether-probe"
 ```
 
-**Only the `types` listed below must be used exactly as they are used in the changelog headings.** For example, `Added: Add foo`, `Added|Fixed: Add foo and fix bar`, `Changed!: Change baz as a breaking change`, etc. You can optionally add a scope as well, like `Fixed(terminal): Fix some bug`. **Do not use anything else as type, like `add` instead of `Added`, etc.**
+Place `DRAWER` and `VOICE` anywhere in the `extra-keys` layout in
+`~/.termux/termux.properties`. `DRAWER` opens the session panel without an edge
+swipe. `VOICE` opens Android's speech prompt, inserts the recognized text into
+the same running session without pressing Enter, and leaves the extra keys
+visible. Canceling recognition or changing sessions inserts nothing. The speech
+UI comes from the installed Android recognizer; the app does not control
+Gboard's microphone button. Ctrl+tap on a terminal URL opens it in the default
+browser, including when ordinary tap-to-open is disabled. Activating Ctrl also
+underlines visible URLs so the links that can be tapped are apparent.
 
-- **Added** for new features.
-- **Changed** for changes in existing functionality.
-- **Deprecated** for soon-to-be removed features.
-- **Removed** for now removed features.
-- **Fixed** for any bug fixes.
-- **Security** in case of vulnerabilities.
-##
+When selecting text from an app that draws each screen row separately, use
+**Copy as one line** in the selection menu (or its overflow) to remove row breaks.
+Regular **Copy** preserves real newlines. The one-line choice keeps true terminal
+auto-wraps joined, removes repeated indentation from continuation rows, and
+replaces other row breaks with a space.
 
+For broader command, storage, and visual sixel checks, see
+[device validation](docs/PIXEL11_VALIDATION.md). For implemented features and
+remaining experiments, see the [feature plan](docs/PIXEL11_FEATURE_PLAN.md).
 
+## Upstream and licensing
 
-## Forking
-
-- Check [`TermuxConstants`](https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java) javadocs for instructions on what changes to make in the app to change package name.
-- You also need to recompile bootstrap zip for the new package name. Check [building bootstrap](https://github.com/termux/termux-packages/wiki/For-maintainers#build-bootstrap-archives), [here](https://github.com/termux/termux-app/issues/1983) and [here](https://github.com/termux/termux-app/issues/2081#issuecomment-865280111).
-- Currently, not all plugins use `TermuxConstants` from `termux-shared` library and have hardcoded `com.termux` values and will need to be manually patched.
-- If forking termux plugins, check [Forking and Local Development](https://github.com/termux/termux-app/wiki/Termux-Libraries#forking-and-local-development) for info on how to use termux libraries for plugins.
-##
-
-
-
-## Sponsors and Funders
-
-[<img alt="GitHub Accelerator" width="25%" src="site/assets/sponsors/github.png" />](https://github.com)  
-*[GitHub Accelerator](https://github.com/accelerator) ([1](https://github.blog/2023-04-12-github-accelerator-our-first-cohort-and-whats-next))*
-
-&nbsp;
-
-[<img alt="GitHub Secure Open Source Fund" width="25%" src="site/assets/sponsors/github.png" />](https://github.com)  
-*[GitHub Secure Open Source Fund](https://resources.github.com/github-secure-open-source-fund) ([1](https://github.blog/open-source/maintainers/securing-the-supply-chain-at-scale-starting-with-71-important-open-source-projects), [2](https://termux.dev/en/posts/general/2025/08/11/termux-selected-for-github-secure-open-source-fund-session-2.html))*
-
-&nbsp;
-
-[<img alt="NLnet NGI Mobifree" width="25%" src="site/assets/sponsors/nlnet-ngi-mobifree.png" />](https://nlnet.nl/mobifree)  
-*[NLnet NGI Mobifree](https://nlnet.nl/mobifree) ([1](https://nlnet.nl/news/2024/20241111-NGI-Mobifree-grants.html), [2](https://termux.dev/en/posts/general/2024/11/11/termux-selected-for-nlnet-ngi-mobifree-grant.html))*
-
-&nbsp;
-
-[<img alt="Cloudflare" width="25%" src="site/assets/sponsors/cloudflare.png" />](https://www.cloudflare.com)  
-*[Cloudflare](https://www.cloudflare.com) ([1](https://packages-cf.termux.dev))*
+Termux-Æther retains the Termux/Monet foundation and credits its upstream
+contributors. The original [upstream README](README.upstream.md) is preserved as
+reference; its download links describe upstream builds, not this fork.
+See [LICENSE.md](LICENSE.md) for GPLv3 and component exceptions. Aether includes
+its runtime license notices; enabled CI builds publish matching source archives.

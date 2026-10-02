@@ -102,7 +102,7 @@ public final class TextStyle {
     /* The bitmap num, x or y could have value `0`, so only return value (especially `0`) if bitmap bit is set. */
 
     public static int getTerminalBitmapNum(long style) {
-        return (style & TERMINAL_BITMAP) != 0 ? (int) (style & 0xffff0000L) >> 16 : -1;
+        return (style & TERMINAL_BITMAP) != 0 ? (int) ((style >>> 16) & 0xffffL) : -1;
     }
 
     public static int getTerminalBitmapX(long style) {

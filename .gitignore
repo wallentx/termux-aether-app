@@ -2,6 +2,9 @@
 # with the addition of the /captures below.
 /captures
 
+# Local benchmark results, reports, and diagnostics
+/.local/
+
 # Built application files
 build/
 release/

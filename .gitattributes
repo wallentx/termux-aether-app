@@ -3,3 +3,6 @@
 *.gradle    text eol=lf
 *.mk        text eol=lf
 *.sh        text eol=lf
+
+# Preserve exact diagnostic bytes covered by the probe SHA-256 manifest.
+docs/probes/2026-09-21-virtiofs/console.txt -text

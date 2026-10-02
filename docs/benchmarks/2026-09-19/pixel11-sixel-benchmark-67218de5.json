@@ -1,0 +1,167 @@
+{
+  "sdk": 37,
+  "device": "Pixel 11 Pro XL",
+  "fingerprint": "google\/kodiak_beta\/kodiak:17\/CP41.260828.004.A8\/16319058:user\/release-keys",
+  "samples_per_variant": 5,
+  "minimum_sample_ms": 150,
+  "scope": "Bitmap allocation and readData decoding; excludes escape parsing, UI rendering and PTY transport",
+  "baseline": "Former per-pixel writer with the same bounds\/cursor handling",
+  "limitations": "Unpinned CPU, uncontrolled thermals; alternating order; no explicit SIMD instructions added",
+  "results": [
+    {
+      "name": "single_columns",
+      "pixels_identical": true,
+      "pixel_checksum": -1095129897,
+      "per_pixel_ms": [
+        5.940472653846154,
+        6.01426036,
+        5.982482884615385,
+        6.00862704,
+        6.0054874
+      ],
+      "batched_ms": [
+        5.882451846153846,
+        5.894104538461538,
+        5.933174,
+        5.9253835769230765,
+        5.939221692307692
+      ],
+      "per_pixel_median_ms": 6.0054874,
+      "batched_median_ms": 5.9253835769230765,
+      "speedup": 1.0135187573997564
+    },
+    {
+      "name": "repeat_2",
+      "pixels_identical": true,
+      "pixel_checksum": 1421671681,
+      "per_pixel_ms": [
+        5.983682807692308,
+        5.962408769230769,
+        5.9578555,
+        5.978209076923077,
+        5.980221307692307
+      ],
+      "batched_ms": [
+        5.383506214285714,
+        5.401133714285714,
+        5.404741035714285,
+        5.3959160357142855,
+        5.379375857142857
+      ],
+      "per_pixel_median_ms": 5.978209076923077,
+      "batched_median_ms": 5.3959160357142855,
+      "speedup": 1.1079136586549407
+    },
+    {
+      "name": "repeat_16",
+      "pixels_identical": true,
+      "pixel_checksum": -279795711,
+      "per_pixel_ms": [
+        6.274179666666667,
+        6.25153525,
+        6.254271833333333,
+        6.2034926,
+        6.1661926
+      ],
+      "batched_ms": [
+        0.8862656117647059,
+        0.8927872189349112,
+        0.892428798816568,
+        0.8948336607142857,
+        0.7348925170731707
+      ],
+      "per_pixel_median_ms": 6.25153525,
+      "batched_median_ms": 0.892428798816568,
+      "speedup": 7.005080134448861
+    },
+    {
+      "name": "repeat_1024",
+      "pixels_identical": true,
+      "pixel_checksum": 131907585,
+      "per_pixel_ms": [
+        5.854220692307693,
+        5.8216385769230765,
+        5.827877923076923,
+        5.813324230769231,
+        5.825262769230769
+      ],
+      "batched_ms": [
+        0.09172901589242054,
+        0.09253971190623073,
+        0.09293075789473684,
+        0.08465356602708804,
+        0.0843806524184477
+      ],
+      "per_pixel_median_ms": 5.825262769230769,
+      "batched_median_ms": 0.09172901589242054,
+      "speedup": 63.505126622775684
+    },
+    {
+      "name": "repeat_8192",
+      "pixels_identical": true,
+      "pixel_checksum": 2040528897,
+      "per_pixel_ms": [
+        13.575822416666666,
+        13.619893416666667,
+        13.728792363636364,
+        13.598686916666667,
+        13.654225727272728
+      ],
+      "batched_ms": [
+        0.1533231950970378,
+        0.15155463333333333,
+        0.1515417707070707,
+        0.14972700099800398,
+        0.16643429268292684
+      ],
+      "per_pixel_median_ms": 13.619893416666667,
+      "batched_median_ms": 0.15155463333333333,
+      "speedup": 89.867878778148
+    },
+    {
+      "name": "overpaint",
+      "pixels_identical": true,
+      "pixel_checksum": -664673279,
+      "per_pixel_ms": [
+        11.702852384615385,
+        11.653854,
+        11.744701307692308,
+        11.683743846153845,
+        11.739213384615384
+      ],
+      "batched_ms": [
+        0.5227603229166666,
+        0.5064012457912458,
+        0.5789182653846154,
+        0.578482826923077,
+        0.489980654723127
+      ],
+      "per_pixel_median_ms": 11.702852384615385,
+      "batched_median_ms": 0.5227603229166666,
+      "speedup": 22.386650003047265
+    },
+    {
+      "name": "resize",
+      "pixels_identical": true,
+      "pixel_checksum": -1589117439,
+      "per_pixel_ms": [
+        8.498606666666667,
+        8.634206166666667,
+        8.365859222222221,
+        8.279306894736843,
+        8.299576368421052
+      ],
+      "batched_ms": [
+        2.4773812786885245,
+        2.569871525423729,
+        2.379871,
+        2.3461238125,
+        2.2781357727272726
+      ],
+      "per_pixel_median_ms": 8.365859222222221,
+      "batched_median_ms": 2.379871,
+      "speedup": 3.515257432954232
+    }
+  ],
+  "correctness": "PASS"
+}

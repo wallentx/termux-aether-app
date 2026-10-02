@@ -31,6 +31,7 @@
     <string name="bootstrap_error_body">&TERMUX_APP_NAME; was unable to install the bootstrap packages.</string>
     <string name="bootstrap_error_abort">Abort</string>
     <string name="bootstrap_error_try_again">Try again</string>
+    <string name="bootstrap_error_pacman_apt_prefix">This build uses Pacman, but your installed environment uses APT. Install an APT build to keep using that environment, or back up your data before setting up a fresh Pacman environment. Updating the APK does not convert existing packages.</string>
     <string name="bootstrap_error_not_primary_user_message">&TERMUX_APP_NAME; can only be run as the primary user.
         \nBootstrap binaries compiled for &TERMUX_APP_NAME; have hardcoded $PREFIX path and cannot be installed
         under any path other than:\n%1$s.</string>
@@ -53,6 +54,10 @@
     <string name="action_create_named_session_confirm">Create</string>
 
     <string name="action_toggle_soft_keyboard">Keyboard</string>
+    <string name="voice_input_prompt">Speak to enter text in Termux</string>
+    <string name="msg_voice_input_unavailable">No speech input app is available</string>
+    <string name="msg_voice_input_no_session">No running terminal session for voice input</string>
+    <string name="msg_voice_input_session_changed">Voice input was not inserted because the session changed</string>
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>
     <string name="msg_disabling_terminal_toolbar">Disabling Terminal Toolbar</string>

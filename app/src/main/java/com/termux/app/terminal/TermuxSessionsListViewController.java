@@ -25,18 +25,31 @@ import com.termux.shared.theme.NightMode;
 import com.termux.shared.theme.ThemeUtils;
 import com.termux.terminal.TerminalSession;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TermuxSessionsListViewController extends ArrayAdapter<TermuxSession> implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     final TermuxActivity mActivity;
+    private final List<TermuxSession> mSessionSource;
 
     final StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
     final StyleSpan italicSpan = new StyleSpan(Typeface.ITALIC);
 
     public TermuxSessionsListViewController(TermuxActivity activity, List<TermuxSession> sessionList) {
-        super(activity.getApplicationContext(), R.layout.item_terminal_sessions_list, sessionList);
+        super(activity.getApplicationContext(), R.layout.item_terminal_sessions_list, new ArrayList<>(sessionList));
         this.mActivity = activity;
+        mSessionSource = sessionList;
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        // Keep the displayed list stable until we notify ListView. The service can change
+        // its list while this activity is disconnected, including during recreation.
+        setNotifyOnChange(false);
+        clear();
+        addAll(mSessionSource);
+        super.notifyDataSetChanged();
     }
 
     @SuppressLint("SetTextI18n")

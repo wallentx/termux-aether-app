@@ -1,0 +1,33 @@
+--------- beginning of system
+09-21 21:29:54.462 27711 27711 I virtmgr : virtualizationmanager: Started VirtualizationService RpcServer. Ready to accept connections
+09-21 21:29:54.479 27711 27715 I virtmgr : virtualizationmanager::virtualmachine: callers secontext: u:r:shell:s0
+09-21 21:29:54.490 27711 27715 I virtmgr : virtualizationmanager::dt_overlay: Passing secretkeeper public key to pvmfw. This will be rejected if it doesn't match the value in the pvmfw config, causing the pVM to fail to start.
+09-21 21:29:54.490 27711 27715 I virtmgr : virtualizationmanager::debug_config: Debug policy ignored for non-Microdroid VM
+09-21 21:29:54.491 27711 27715 W virtmgr : virtualizationmanager::virtualmachine: VM profile is missing. It is recommended to specify one
+09-21 21:29:54.491 27711 27715 W virtmgr : virtualizationmanager::virtualization_service: unknown partition for '/data/local/tmp/termux-arch-v2/Image'
+09-21 21:29:54.494 27711 27715 W virtmgr : virtualizationmanager::crosvm::args: Memory balloon not enabled:
+09-21 21:29:54.494 27711 27715 W virtmgr :                 config.balloon=false,hypervisor.memory_reclaim.supported=true
+09-21 21:29:54.495 27711 27715 I virtmgr : virtualizationmanager::crosvm: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2100) created
+09-21 21:29:54.500 27711 27715 I virtmgr : virtualizationmanager::atom: Writing VmCreationRequested atom into statsd.
+09-21 21:29:54.503 27711 27715 I virtmgr : virtualizationmanager::crosvm::runner: Running crosvm with args: ["device", "fs", "--socket-path=/data/misc/virtualizationservice/2100/fs.sock", "--tag=aether_probe", "--shared-dir=/data/data/com.termux/files/usr/tmp/aether-vufs-zlcax68u/share", "--cfg", "ugid_map='0 0 2000 2000 0 /; 0 0 0 0 511 /Android'", "--disable-sandbox", "--skip-pivot-root=true"]
+--------- beginning of main
+09-21 21:29:54.507 27722 27722 W crosvm_vu_fs: type=1400 audit(0.0:608974): avc:  denied  { use } for  path="pipe:[6748861]" dev="pipefs" ino=6748861 scontext=u:r:crosvm_vu_fs:s0 tcontext=u:r:shell:s0 tclass=fd permissive=0
+09-21 21:29:54.507 27722 27722 W crosvm_vu_fs: type=1400 audit(0.0:608975): avc:  denied  { use } for  path="/data/local/tmp/aether-vufs-probe-20260921/private-result.txt" dev="dm-18" ino=2114776 scontext=u:r:crosvm_vu_fs:s0 tcontext=u:r:shell:s0 tclass=fd permissive=0
+09-21 21:29:54.507 27722 27722 W crosvm_vu_fs: type=1400 audit(0.0:608976): avc:  denied  { use } for  path="/data/local/tmp/aether-vufs-probe-20260921/private-result.txt" dev="dm-18" ino=2114776 scontext=u:r:crosvm_vu_fs:s0 tcontext=u:r:shell:s0 tclass=fd permissive=0
+09-21 21:29:54.514 27711 27715 I virtmgr : virtualizationmanager::crosvm::runner: Spawned virtiofs crosvm_vu_fs(27722)
+09-21 21:29:54.599 27722 27722 W crosvm  : type=1400 audit(0.0:608977): avc:  denied  { search } for  name="data" dev="dm-18" ino=226 scontext=u:r:crosvm_vu_fs:s0 tcontext=u:object_r:system_data_file:s0:c512,c768 tclass=dir permissive=0
+09-21 21:29:54.602 27722 27722 E crosvm  : Failed to run device: Failed to canonicalize root_dir: Permission denied (os error 13)
+09-21 21:29:54.603 27722 27722 E crosvm  : exiting with error 1: start_device subcommand failed
+09-21 21:29:59.545 27711 27715 E virtmgr : avflog: Error starting VM with CID 2100
+09-21 21:29:59.545 27711 27715 E virtmgr : 
+09-21 21:29:59.545 27711 27715 E virtmgr : Caused by:
+09-21 21:29:59.545 27711 27715 E virtmgr :     0: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2100) failed to start
+09-21 21:29:59.545 27711 27715 E virtmgr :     1: Error waiting for file: File not found within 5 seconds: /data/misc/virtualizationservice/2100/fs.sock
+09-21 21:29:59.545 27711 27720 I virtmgr : virtualizationmanager::crosvm::args: Log(2100): EOF
+09-21 21:29:59.550 27711 27715 E virtmgr : avflog: Error stopping VM with CID 2100
+09-21 21:29:59.550 27711 27715 E virtmgr : 
+09-21 21:29:59.550 27711 27715 E virtmgr : Caused by:
+09-21 21:29:59.550 27711 27715 E virtmgr :     VM is not running
+09-21 21:29:59.625 27711 27711 I virtmgr : virtualizationmanager: Shutting down VirtualizationService RpcServer
+09-21 21:29:59.625 27711 27711 E virtmgr : virtualizationmanager: VM (cid: 2100) did not die when I tried to kill it: VM is not running
+09-21 21:29:59.625 27711 27711 I virtmgr : virtualizationmanager: All VMs halted.

@@ -38,7 +38,8 @@ jobs:
         run: |
           sdkmanager "ndk;$NDK_VERSION" 'platforms;android-34' 'build-tools;34.0.0'
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
-          npm install --global @bazel/bazelisk@1.28.1
+          npm install --global --prefix "$RUNNER_TEMP/bazelisk" @bazel/bazelisk@1.28.1
+          echo "$RUNNER_TEMP/bazelisk/bin" >> "$GITHUB_PATH"
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libssl-dev zlib1g-dev
 

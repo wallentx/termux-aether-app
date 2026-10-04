@@ -169,6 +169,7 @@ The main ones are the following.
 - [Moved Termux Packages Hosting From Bintray to IPFS](https://github.com/termux/termux-packages/issues/6348)
 - [Running Commands in Termux From Other Apps via `RUN_COMMAND` intent](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)
 - [Termux and Android 10](https://github.com/termux/termux-packages/wiki/Termux-and-Android-10)
+- [16KB Page Size Support](docs/16KB_PAGE_SIZE_SUPPORT.md)
 
 
 ### Terminal

@@ -1,0 +1,3 @@
+Pixel 11 Pro XL
+google/kodiak_beta/kodiak:17/CP41.260828.004.A8/16319058:user/release-keys
+    versionName=1000.0.0

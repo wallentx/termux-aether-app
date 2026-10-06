@@ -15,6 +15,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,54 +30,35 @@ public class TermuxShellUtils {
      */
     @NonNull
     public static String[] setupShellCommandArguments(@NonNull String executable, @Nullable String[] arguments) {
-        // The file to execute may either be:
-        // - An elf file, in which we execute it directly.
-        // - A script file without shebang, which we execute with our standard shell $PREFIX/bin/sh instead of the
-        //   system /system/bin/sh. The system shell may vary and may not work at all due to LD_LIBRARY_PATH.
-        // - A file with shebang, which we try to handle with e.g. /bin/foo -> $PREFIX/bin/foo.
         String interpreter = null;
-        try {
-            File file = new File(executable);
-            try (FileInputStream in = new FileInputStream(file)) {
-                byte[] buffer = new byte[256];
-                int bytesRead = in.read(buffer);
-                if (bytesRead > 4) {
-                    if (buffer[0] == 0x7F && buffer[1] == 'E' && buffer[2] == 'L' && buffer[3] == 'F') {
-                        // Elf file, do nothing.
-                    } else if (buffer[0] == '#' && buffer[1] == '!') {
-                        // Try to parse shebang.
-                        StringBuilder builder = new StringBuilder();
-                        for (int i = 2; i < bytesRead; i++) {
-                            char c = (char) buffer[i];
-                            if (c == ' ' || c == '\n') {
-                                if (builder.length() == 0) {
-                                    // Skip whitespace after shebang.
-                                } else {
-                                    // End of shebang.
-                                    String shebangExecutable = builder.toString();
-                                    if (shebangExecutable.startsWith("/usr") || shebangExecutable.startsWith("/bin")) {
-                                        String[] parts = shebangExecutable.split("/");
-                                        String binary = parts[parts.length - 1];
-                                        interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/" + binary;
-                                    }
-                                    break;
-                                }
-                            } else {
-                                builder.append(c);
-                            }
-                        }
-                    } else {
-                        // No shebang and no ELF, use standard shell.
-                        interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh";
+        String interpreterArgument = null;
+        try (FileInputStream in = new FileInputStream(executable)) {
+            byte[] buffer = new byte[256];
+            int bytesRead = in.read(buffer);
+            boolean elf = bytesRead >= 4 && buffer[0] == 0x7F && buffer[1] == 'E'
+                && buffer[2] == 'L' && buffer[3] == 'F';
+            if (!elf) {
+                interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh";
+                if (bytesRead >= 2 && buffer[0] == '#' && buffer[1] == '!') {
+                    String line = new String(buffer, 2, bytesRead - 2, StandardCharsets.UTF_8).split("\\n", 2)[0].trim();
+                    // Like the kernel, pass the optional shebang argument as one argument. This
+                    // also supports /usr/bin/env -S; env itself splits the remaining string.
+                    String[] shebang = line.split("[ \\t]+", 2);
+                    if (!shebang[0].isEmpty()) {
+                        interpreter = shebang[0];
+                        if (interpreter.startsWith("/usr/") || interpreter.startsWith("/bin/"))
+                            interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/" + new File(interpreter).getName();
+                        if (shebang.length > 1) interpreterArgument = shebang[1];
                     }
                 }
             }
         } catch (IOException e) {
-            // Ignore.
+            // Keep the original executable so the launcher reports the actual open/exec error.
         }
 
         List<String> result = new ArrayList<>();
         if (interpreter != null) result.add(interpreter);
+        if (interpreterArgument != null) result.add(interpreterArgument);
         result.add(executable);
         if (arguments != null) Collections.addAll(result, arguments);
         return result.toArray(new String[0]);

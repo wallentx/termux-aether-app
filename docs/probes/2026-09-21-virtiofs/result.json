@@ -1,0 +1,36 @@
+{
+  "date_utc": "2026-09-22",
+  "fingerprint": "google/kodiak_beta/kodiak:17/CP41.260828.004.A8/16319058:user/release-keys",
+  "probe": "diskless, 256 MiB, one CPU, no network; existing kernel opened read-only",
+  "external_storage": {
+    "cids": [
+      2099,
+      2101
+    ],
+    "host_backend_connected": true,
+    "guest_kernel_ran": true,
+    "guest_mount_tested": false,
+    "file_io_tested": false
+  },
+  "private_termux_storage": {
+    "cid": 2100,
+    "result": "host_backend_directory_access_denied",
+    "selinux_domain": "u:r:crosvm_vu_fs:s0",
+    "denial": "search on system_data_file directory",
+    "vm_booted": false
+  },
+  "termux_owned_backend": {
+    "uid": 10445,
+    "result": "unshare(CLONE_NEWNS) = EPERM before protocol negotiation"
+  },
+  "artifacts": {
+    "VirtioFsProbe.java": "c7545db41f65c929be0c1b9a9a795b14b39ea275a1dfd3d4b535d6003418cdfa",
+    "console.txt": "2e83cffd9025f2efb85503d0995bf06d4d9b523121b81d83eab34fbf79cf806e",
+    "external-confirm-result.txt": "4b7416ef916233be17ef92eff88512c09e6578cf3f745a1f3342b4a44a5b885e",
+    "external-log.txt": "83216ddacd409aada9412e119ea451e93a4ac694b634a111771d3817ccc75241",
+    "external-result.txt": "dbbfab95d3287a7b55132ec148fb06830e68d34d2d8f2470cb02af7812f43ad3",
+    "private-log.txt": "a5261ea80ef2d1b8ae264802e2440fcb4bc73688912cbfefba139b03d755abff",
+    "private-result.txt": "376b6c4a6ac634089c0f126309b867f6e92610599719c251d234dfd3829bba5e",
+    "termux-backend-probe.json": "8609426d7a1bf8edbdd2cfda43f8b2ed2070f6acf29161277240ec064476a4d2"
+  }
+}

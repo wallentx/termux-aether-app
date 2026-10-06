@@ -68,8 +68,15 @@ public class TermuxApplication extends Application {
         // Init TermuxShellEnvironment constants and caches after everything has been setup including termux-am-socket server
         TermuxShellEnvironment.init(this);
 
+        if (com.termux.app.session.SessionManager.required(this))
+            com.termux.app.session.SessionManager.get(this);
+
         if (isTermuxFilesDirectoryAccessible) {
             TermuxShellEnvironment.writeEnvironmentToFile(this);
+            if (new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR, "bin").isDirectory()) {
+                BundledRishInstaller.install(this, TermuxConstants.TERMUX_PREFIX_DIR);
+                BundledAetherInstaller.install(this);
+            }
         }
     }
 

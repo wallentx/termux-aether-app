@@ -1,32 +1,68 @@
 name: Build
-
 on:
+  workflow_dispatch:
+    inputs:
+      all_apks:
+        description: 'Build all architectures and all bootstrap variants'
+        type: boolean
+        default: false
+      aether_prototype:
+        description: 'Include Aether in the Pixel APK (disable to opt out)'
+        type: boolean
+        default: true
   push:
     branches:
       - master
+      - dev
       - 'github-releases/**'
   pull_request:
     branches:
       - master
-
+      - dev
 jobs:
   build:
+    # Same-repository branches below already build on push (including the dev -> master sync PR).
+    # Keep PR validation for fork branches and branches without a push trigger.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository ||
+      !(contains(fromJSON('["master","dev"]'), github.head_ref) || startsWith(github.head_ref, 'github-releases/'))
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        package_variant: [ apt-android-7, apt-android-5 ]
-
+        package_variant: ${{ fromJSON((inputs.all_apks || vars.TERMUX_BUILD_ALL_APKS == 'true') && '["pacman-android-7","apt-android-7","apt-android-5"]' || '["pacman-android-7"]') }}
+    env:
+      BUILD_ALL_APKS: ${{ inputs.all_apks || vars.TERMUX_BUILD_ALL_APKS == 'true' }}
+      AETHER_ENABLED: ${{ !(inputs.all_apks || vars.TERMUX_BUILD_ALL_APKS == 'true') && vars.TERMUX_DISABLE_AETHER != 'true' && (github.event_name != 'workflow_dispatch' || inputs.aether_prototype) }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v6
-
+        uses: actions/checkout@v7
       - name: Setup java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: 'temurin'
           java-version: '17'
-
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Install SDK and NDK
+        run: sdkmanager 'platforms;android-37.2' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+      - name: Prepare Aether toolchain and accompanying sources
+        if: env.AETHER_ENABLED == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          bash scripts/aether/source-bundle.sh "$RUNNER_TEMP/aether-source"
+      - name: Attach Aether accompanying sources
+        if: env.AETHER_ENABLED == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: aether-source
+          path: ${{ runner.temp }}/aether-source.tar.gz
+          if-no-files-found: error
       - name: Build APKs
         shell: bash {0}
         env:
@@ -41,7 +77,7 @@ jobs:
           fi
 
           # Set RELEASE_VERSION_NAME to "<CURRENT_VERSION_NAME>+<last_commit_hash>"
-          CURRENT_VERSION_NAME_REGEX='\s+versionName "([^"]+)"$'
+          CURRENT_VERSION_NAME_REGEX='\s+versionName = "([^"]+)"$'
           CURRENT_VERSION_NAME="$(grep -m 1 -E "$CURRENT_VERSION_NAME_REGEX" ./app/build.gradle | sed -r "s/$CURRENT_VERSION_NAME_REGEX/\1/")"
           RELEASE_VERSION_NAME="v$CURRENT_VERSION_NAME+${GITHUB_SHA:0:7}" # The "+" is necessary so that versioning precedence is not affected
           if ! printf "%s" "${RELEASE_VERSION_NAME/v/}" | grep -qP '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'; then
@@ -50,82 +86,149 @@ jobs:
 
           APK_DIR_PATH="./app/build/outputs/apk/debug"
           APK_VERSION_TAG="$RELEASE_VERSION_NAME-${{ env.PACKAGE_VARIANT }}-github-debug" # Note the "-", GITHUB_SHA will already have "+" before it
-          APK_BASENAME_PREFIX="termux-app_$APK_VERSION_TAG"
+          APK_BASENAME_PREFIX="termux-aether-app_$APK_VERSION_TAG"
 
           # Used by attachment steps later
-          echo "APK_DIR_PATH=$APK_DIR_PATH" >> $GITHUB_ENV
-          echo "APK_VERSION_TAG=$APK_VERSION_TAG" >> $GITHUB_ENV
-          echo "APK_BASENAME_PREFIX=$APK_BASENAME_PREFIX" >> $GITHUB_ENV
+          {
+              echo "APK_DIR_PATH=$APK_DIR_PATH"
+              echo "APK_VERSION_TAG=$APK_VERSION_TAG"
+              echo "APK_BASENAME_PREFIX=$APK_BASENAME_PREFIX"
+          } >> "$GITHUB_ENV"
 
           echo "Building APKs for 'APK_VERSION_TAG' build"
           export TERMUX_APP_VERSION_NAME="${RELEASE_VERSION_NAME/v/}" # Used by app/build.gradle
           export TERMUX_APK_VERSION_TAG="$APK_VERSION_TAG" # Used by app/build.gradle
           export TERMUX_PACKAGE_VARIANT="${{ env.PACKAGE_VARIANT }}" # Used by app/build.gradle
-          if ! ./gradlew assembleDebug; then
+          build_profile=pixel11
+          abis=(arm64-v8a)
+          if [ "$BUILD_ALL_APKS" = "true" ]; then
+              build_profile=all
+              abis=(universal arm64-v8a armeabi-v7a x86_64 x86)
+          fi
+          if ! ./gradlew :app:assembleDebug -PtermuxBuildProfile="$build_profile" -PaetherEnabled="$AETHER_ENABLED"; then
             exit_on_error "Build failed for '$APK_VERSION_TAG' build."
           fi
 
           echo "Validating APKs"
-          for abi in universal arm64-v8a armeabi-v7a x86_64 x86; do
+          apk_files=()
+          for abi in "${abis[@]}"; do
             if ! test -f "$APK_DIR_PATH/${APK_BASENAME_PREFIX}_$abi.apk"; then
               files_found="$(ls "$APK_DIR_PATH")"
               exit_on_error "Failed to find built APK at '$APK_DIR_PATH/${APK_BASENAME_PREFIX}_$abi.apk'. Files found: "$'\n'"$files_found"
             fi
+            apk_files+=("${APK_BASENAME_PREFIX}_$abi.apk")
           done
 
-          echo "Generating sha25sums file"
-          if ! (cd "$APK_DIR_PATH"; sha256sum \
-            "${APK_BASENAME_PREFIX}_universal.apk" \
-            "${APK_BASENAME_PREFIX}_arm64-v8a.apk" \
-            "${APK_BASENAME_PREFIX}_armeabi-v7a.apk" \
-            "${APK_BASENAME_PREFIX}_x86_64.apk" \
-            "${APK_BASENAME_PREFIX}_x86.apk" \
+          for apk in "${apk_files[@]}"; do
+              if ! python3 scripts/aether/verify-package.py "$APK_DIR_PATH/$apk" \
+                --enabled "$AETHER_ENABLED" --source-archive "$RUNNER_TEMP/aether-source.tar.gz"; then
+                  exit_on_error "Aether package/source verification failed."
+              fi
+          done
+
+          echo "Generating sha256sums file"
+          if ! (cd "$APK_DIR_PATH"; sha256sum "${apk_files[@]}" \
             > "${APK_BASENAME_PREFIX}_sha256sums"); then
             exit_on_error "Generate sha25sums failed for '$APK_VERSION_TAG' release."
           fi
-
+      - name: Verify default Pixel APK
+        if: env.BUILD_ALL_APKS != 'true'
+        shell: bash
+        run: |
+          apk="$APK_DIR_PATH/${APK_BASENAME_PREFIX}_arm64-v8a.apk"
+          apkanalyzer manifest target-sdk "$apk" | grep -x 37
+          expected_code=$(sed -n 's/^[[:space:]]*versionCode = \([0-9]*\)$/\1/p' app/build.gradle)
+          test -n "$expected_code"
+          apkanalyzer manifest version-code "$apk" | grep -x "$expected_code"
+          python3 - "$apk" <<'PY'
+          import hashlib, pathlib, sys, zipfile
+          path = pathlib.Path(sys.argv[1])
+          assert len(list(path.parent.glob('*.apk'))) == 1, 'Expected one APK'
+          with zipfile.ZipFile(path) as apk:
+              abis = {n.split('/')[1] for n in apk.namelist() if n.startswith('lib/') and n.endswith('.so')}
+              assert abis == {'arm64-v8a'}, abis
+              assert hashlib.sha256(apk.read('assets/rish/rish_shizuku.dex')).hexdigest() == '1953c1fd9708904f8fc1f67774843b4cc3d03e5f2a578ff4d654d0625456bc28'
+              for name in ('termux-rish', 'LICENSE', 'NOTICE'):
+                  assert apk.read('assets/rish/' + name), name
+          PY
+      - name: Attach Aether execution probe
+        if: env.AETHER_ENABLED == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: aether-probe
+          path: app/build/generated/aether/probes/
+          if-no-files-found: error
+      - name: Build sixel comparison harness from existing emulator classes
+        if: env.BUILD_ALL_APKS != 'true'
+        run: bash scripts/sixel-benchmark/build.sh "$RUNNER_TEMP/sixel-benchmark"
+      - name: Attach sixel comparison harness
+        if: env.BUILD_ALL_APKS != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sixel-benchmark
+          path: ${{ runner.temp }}/sixel-benchmark/artifact/
+          if-no-files-found: error
+      - name: Build buffer comparison harness from existing emulator classes
+        if: env.BUILD_ALL_APKS != 'true'
+        run: bash scripts/buffer-benchmark/build.sh "$RUNNER_TEMP/buffer-benchmark"
+      - name: Attach buffer comparison harness
+        if: env.BUILD_ALL_APKS != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: buffer-benchmark
+          path: ${{ runner.temp }}/buffer-benchmark/artifact/
+          if-no-files-found: error
+      - name: Build text comparison harness from existing emulator classes
+        if: env.BUILD_ALL_APKS != 'true'
+        run: bash scripts/text-benchmark/build.sh "$RUNNER_TEMP/text-benchmark"
+      - name: Attach text comparison harness
+        if: env.BUILD_ALL_APKS != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: text-benchmark
+          path: ${{ runner.temp }}/text-benchmark/artifact/
+          if-no-files-found: error
       - name: Attach universal APK file
-        uses: actions/upload-artifact@v6
+        if: env.BUILD_ALL_APKS == 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_universal
           path: |
             ${{ env.APK_DIR_PATH }}/${{ env.APK_BASENAME_PREFIX }}_universal.apk
             ${{ env.APK_DIR_PATH }}/output-metadata.json
-
       - name: Attach arm64-v8a APK file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_arm64-v8a
           path: |
             ${{ env.APK_DIR_PATH }}/${{ env.APK_BASENAME_PREFIX }}_arm64-v8a.apk
             ${{ env.APK_DIR_PATH }}/output-metadata.json
-
       - name: Attach armeabi-v7a APK file
-        uses: actions/upload-artifact@v6
+        if: env.BUILD_ALL_APKS == 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_armeabi-v7a
           path: |
             ${{ env.APK_DIR_PATH }}/${{ env.APK_BASENAME_PREFIX }}_armeabi-v7a.apk
             ${{ env.APK_DIR_PATH }}/output-metadata.json
-
       - name: Attach x86_64 APK file
-        uses: actions/upload-artifact@v6
+        if: env.BUILD_ALL_APKS == 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_x86_64
           path: |
             ${{ env.APK_DIR_PATH }}/${{ env.APK_BASENAME_PREFIX }}_x86_64.apk
             ${{ env.APK_DIR_PATH }}/output-metadata.json
-
       - name: Attach x86 APK file
-        uses: actions/upload-artifact@v6
+        if: env.BUILD_ALL_APKS == 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_x86
           path: |
             ${{ env.APK_DIR_PATH }}/${{ env.APK_BASENAME_PREFIX }}_x86.apk
             ${{ env.APK_DIR_PATH }}/output-metadata.json
-
       - name: Attach sha256sums file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APK_BASENAME_PREFIX }}_sha256sums
           path: |

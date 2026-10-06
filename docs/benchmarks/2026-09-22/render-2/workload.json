@@ -1,0 +1,35 @@
+{
+  "columns": 83,
+  "rows": 74,
+  "image_width": 960,
+  "image_height": 600,
+  "fps": 60,
+  "seconds": 10.0,
+  "results": [
+    {
+      "phase": "text_scroll",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000167253019754
+    },
+    {
+      "phase": "image_redraw",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000653517025057
+    },
+    {
+      "phase": "image_replace",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000142684031744
+    },
+    {
+      "phase": "input_echo",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000207735982258
+    }
+  ],
+  "input_received_ns": []
+}

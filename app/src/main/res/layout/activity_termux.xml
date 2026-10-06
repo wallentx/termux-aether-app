@@ -16,7 +16,7 @@
         android:layout_marginVertical="0dp"
         android:orientation="vertical">
 
-        <androidx.drawerlayout.widget.DrawerLayout
+        <com.termux.app.terminal.TermuxDrawerLayout
             android:id="@+id/drawer_layout"
             android:layout_width="match_parent"
             android:layout_alignParentTop="true"
@@ -92,7 +92,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-        </androidx.drawerlayout.widget.DrawerLayout>
+        </com.termux.app.terminal.TermuxDrawerLayout>
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/terminal_toolbar_view_pager"

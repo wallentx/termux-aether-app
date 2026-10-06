@@ -1,26 +1,46 @@
 name: Unit tests
-
 on:
   push:
     branches:
       - master
+      - dev
       - android-10
   pull_request:
     branches:
       - master
+      - dev
       - android-10
-
 jobs:
   testing:
+    # Same-repository long-lived branches are tested by the push event.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository ||
+      !contains(fromJSON('["master","dev","android-10"]'), github.head_ref)
     runs-on: ubuntu-latest
     steps:
-    - name: Clone repository
-      uses: actions/checkout@v6
-    - name: Setup java 17
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-    - name: Execute tests
-      run: |
-        ./gradlew test
+      - name: Clone repository
+        uses: actions/checkout@v7
+      - name: Setup java 17
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Install SDK and NDK
+        run: sdkmanager 'platforms;android-37.2' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+      - name: Install Aether cross compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Execute tests
+        run: |
+          python3 -B -m unittest discover -s scripts/pixel-validate -p 'test_*.py'
+          python3 -B -m unittest discover -s scripts/render-benchmark -p 'test_*.py'
+          python3 -B -m unittest discover -s scripts/aether -p 'test_*.py'
+          python3 -B -m unittest discover -s scripts/suite -p 'test_*.py'
+          ./gradlew test

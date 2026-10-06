@@ -87,8 +87,9 @@ Check the bundled Linux compatibility runtime:
 aether-run "$HOME/../aether/aether-probe"
 ```
 
-Add `VOICE` or `DRAWER` to your `extra-keys` layout in
+Add `VOICE`, `GBOARD`, or `DRAWER` to your `extra-keys` layout in
 `~/.termux/termux.properties` for speech input or one-tap session access.
+[Gboard voice input](docs/GBOARD_VOICE.md) supports its selected dictation mode, including Rambler.
 Hold Ctrl to underline and open links. Use **Copy as one line** to copy wrapped
 prose without unwanted line breaks.
 

@@ -94,6 +94,7 @@ public final class BackgroundProcessProbe {
     }
 
     private static final class FakeService extends ISessionService.Stub {
+        @Override public boolean tapGboardMicrophone(int x, int y, int width, int height, String fingerprint, com.termux.app.session.IGboardTapGuard guard) { return false; }
         final boolean hold, early;
         final CountDownLatch stop = new CountDownLatch(1);
         volatile int stops;

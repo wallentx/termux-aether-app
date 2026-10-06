@@ -240,4 +240,7 @@
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
 
+    <string name="gboard_voice_draft">Gboard voice draft</string>
+    <string name="gboard_voice_instructions">Dictate, tap Gboard’s checkmark, then Send to insert. Tap the voice key again to cancel.</string>
+    <string name="gboard_voice_manual">Tap Gboard’s microphone to start. Automatic tap is unavailable for this keyboard layout.</string>
 </resources>

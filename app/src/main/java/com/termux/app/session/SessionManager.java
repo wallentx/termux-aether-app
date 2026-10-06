@@ -53,7 +53,7 @@ public final class SessionManager {
     private SessionManager(Context context) {
         this.context = context;
         args = new Shizuku.UserServiceArgs(new ComponentName(context, SessionUserService.class))
-            .daemon(false).processNameSuffix("aether_sessions").debuggable(false).version(3);
+            .daemon(false).processNameSuffix("aether_sessions").debuggable(false).version(4);
         Shizuku.addBinderReceivedListenerSticky(() -> main.post(() -> {
             requestingBinder = false;
             connect(requestPermissionOnConnect);
@@ -130,6 +130,14 @@ public final class SessionManager {
             return current != null && current.asBinder().isBinderAlive() && Shizuku.pingBinder()
                 && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
         } catch (RuntimeException unavailable) { return false; }
+    }
+
+    /** Call off the UI thread. No retry: a failed tap leaves manual Gboard input available. */
+    public boolean tapGboardMicrophone(int x, int y, int width, int height, String fingerprint, IGboardTapGuard guard) {
+        ISessionService current = service;
+        if (current == null || !isReady()) return false;
+        try { return current.tapGboardMicrophone(x, y, width, height, fingerprint, guard); }
+        catch (RemoteException | RuntimeException unavailable) { return false; }
     }
 
     private void notifyChanged() { for (Runnable listener : listeners) listener.run(); }

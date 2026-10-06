@@ -613,9 +613,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
+    private com.termux.app.terminal.io.GboardVoiceInput mGboardVoiceInput;
+
+    public void toggleGboardVoiceInput() {
+        if (mVoiceInputSessionHandle != null) return;
+        if (mGboardVoiceInput == null)
+            mGboardVoiceInput = new com.termux.app.terminal.io.GboardVoiceInput(this);
+        mGboardVoiceInput.toggle();
+    }
+
+    @Override protected void onPause() {
+        if (mGboardVoiceInput != null) mGboardVoiceInput.cancel();
+        super.onPause();
+    }
+
     /** Dictate into the session that was active when the VOICE extra key was tapped. */
     public void startVoiceInput() {
-        if (mVoiceInputSessionHandle != null) return;
+        if (mVoiceInputSessionHandle != null || (mGboardVoiceInput != null && mGboardVoiceInput.isActive())) return;
 
         TerminalSession session = getCurrentSession();
         if (session == null || !session.isRunning()) {

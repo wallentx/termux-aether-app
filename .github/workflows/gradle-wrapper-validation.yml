@@ -11,6 +11,7 @@ on:
       - master
       - dev
       - android-10
+  workflow_dispatch:
 
 jobs:
   validation:

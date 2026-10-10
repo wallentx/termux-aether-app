@@ -5,11 +5,15 @@ on:
       - master
       - dev
       - android-10
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches:
       - master
       - dev
       - android-10
+    paths-ignore:
+      - '**/*.md'
 jobs:
   testing:
     # Same-repository long-lived branches are tested by the push event.

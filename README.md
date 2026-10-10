@@ -3,62 +3,54 @@
 [![Build](https://github.com/wallentx/termux-aether-app/actions/workflows/debug_build.yml/badge.svg?branch=dev)](https://github.com/wallentx/termux-aether-app/actions/workflows/debug_build.yml?query=branch%3Adev)
 [![Tests](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml/badge.svg?branch=dev)](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml?query=branch%3Adev)
 
-**A Linux development environment built for modern Android.** Termux-Æther combines
-native command execution on current Android, Pacman packages, Linux binary
-compatibility, and an optional hardware-virtualized Arch workspace with a faster,
-more convenient terminal.
-Development and device testing focus on the **Pixel 11 Pro XL running Android 17**.
+This is my personal Termux fork for the **Pixel 11 Pro XL running Android 17**.
+I use it to test patches and experimental changes independently of upstream,
+while keeping an upstream baseline available. `master` tracks upstream;
+`dev` contains the fork's changes.
 
-[Install or upgrade](docs/RELEASES.md) · [Downloads](https://github.com/wallentx/termux-aether-app/releases/latest) · [Report an issue](https://github.com/wallentx/termux-aether-app/issues)
+The focus is newer Android SDKs and dependencies, device-specific performance
+work including SIMD experiments, an AVF alternative to my PRoot-based Arch setup,
+and integrated Shizuku access. The compatibility work aims to reduce the per-tool
+patches I've needed in [codex-termux](https://github.com/wallentx/codex-termux),
+[antigravity-cli-termux](https://github.com/wallentx/antigravity-cli-termux),
+[claude-code-termux](https://github.com/wallentx/claude-code-termux), and
+[opencode-termux](https://github.com/wallentx/opencode-termux).
 
-## What sets it apart
+[Installation and upgrades](docs/RELEASES.md) · [Downloads](https://github.com/wallentx/termux-aether-app/releases/latest) · [Issues](https://github.com/wallentx/termux-aether-app/issues)
 
-### Native execution on modern Android
+## Features
 
-For apps targeting Android 10 or later, Android restricts execution of programs
-stored in an app's writable private directory. Working around this with explicit
-linker invocation or preload hooks can require per-tool patches, particularly for programs that
-launch subprocesses or restart themselves.
+- **Native execution by default.** Android restricts execution from writable app
+  directories for apps targeting Android 10 or later. Termux-Æther uses Shizuku
+  and `run-as` for all normal terminal sessions and app-managed background jobs,
+  permitting direct execution while retaining Termux's user ID and Android's
+  Bionic C library. Commands and ordinary child processes use this context
+  automatically, without a per-command wrapper. This avoids linker-based
+  execution workarounds for build tools, task runners, and worker processes.
+  Recovery shells retain the legacy launcher. The integration also includes
+  `rish` access, a shared-storage bridge, and optional companion device and thermal
+  diagnostics. [Execution](scripts/session-validate/README.md) · [Shizuku shell](docs/RISH.md) · [Device tools](docs/PIXEL11_VALIDATION.md)
+- **Linux/glibc compatibility.** The separate `aether-run` command launches
+  supported Linux ARM64/glibc binaries through a bundled loader and compatibility
+  libraries, with Android-backed hostname lookup (`getaddrinfo`) and common
+  certificate-path mappings. It runs on Android's kernel without PRoot or a VM
+  and does not replace Bionic for normal commands. [Runtime guide](scripts/aether/README.md)
+- **Arch through AVF.** The optional [API companion](https://github.com/wallentx/termux-aether-api)
+  provides an Arch Linux ARM virtual machine using Android's virtualization
+  framework. Open it with `Æ` or run commands with `æ`. It supports networking,
+  directory sharing, persistent storage, and adjustable resources on supported
+  Android builds.
+- **Android SDK target and Pacman packages.** The default ARM64 build
+  targets SDK 37. Fresh installations use Android-compatible Termux packages
+  managed by Pacman; existing APT environments are not converted.
+- **Terminal changes.** Text parsing, buffer operations, and sixel image handling
+  include measured optimizations. The interface includes Monet theming,
+  configurable voice-input and session-menu keys, Ctrl+tap links,
+  **Copy as one line**, and **Keep screen on**.
 
-By default on modern Android, Termux-Æther launches all normal terminal sessions
-and app-managed background jobs through Shizuku and Android's `run-as`, in a
-context that permits direct execution while retaining Termux's user ID and Android's native Bionic C library.
-Commands run in this context automatically, and ordinary child processes inherit it;
-no per-command wrapper or opt-in is needed. This supports workflows such as
-compiling software, running scripts that invoke other tools, and starting worker
-processes without relying on explicit linker invocation for their normal execution.
-The explicit recovery shell retains the legacy launcher.
+## Performance measurements
 
-It also includes a separate `aether-run` command that launches supported Linux
-ARM64/glibc binaries through a bundled glibc loader and compatibility libraries,
-with Android-backed hostname lookup (`getaddrinfo`) and mappings for common
-certificate paths. This runs on the Android kernel without PRoot or a VM; it does
-not replace Bionic for normal Termux commands.
-
-[Execution details](scripts/session-validate/README.md) · [glibc compatibility and limitations](scripts/aether/README.md)
-
-### More features
-
-- **More Linux tools, directly on Android.** The bundled Aether runtime runs
-  supported Linux ARM64/glibc programs without PRoot or a VM, with Android-aware
-  DNS and certificate handling. [Runtime guide](scripts/aether/README.md)
-- **A real Arch workspace when you need one.** Open Arch Linux ARM with `Æ`, or
-  run a command with `æ`. Hardware virtualization, networking, directory sharing,
-  persistent storage, and adjustable resources are available through the optional
-  [API companion](https://github.com/wallentx/termux-aether-api).
-- **Pacman by default.** Fresh installations use Android-compatible Termux
-  packages managed by Pacman. Existing APT environments stay APT.
-- **A terminal that gets out of your way.** Faster text and sixel image handling,
-  Monet theming, configurable voice-input and session-menu keys, Ctrl+tap links,
-  **Copy as one line**, and an in-app **Keep screen on** option.
-- **Android integration without root.** Bundled Shizuku integration supports
-  shared-storage access. Inspect device capabilities,
-  temperatures, and thermal limits with the companion diagnostic tools.
-  [Device tools](docs/PIXEL11_VALIDATION.md) · [Shizuku shell](docs/RISH.md)
-
-## Performance highlights
-
-Targeted terminal benchmarks on the Pixel 11 Pro XL show substantial gains:
+Results from targeted terminal benchmarks on the Pixel 11 Pro XL:
 
 | Operation | Measured improvement |
 | --- | ---: |
@@ -73,7 +65,7 @@ not whole-app performance against stock Termux. The largest sixel result is a
 synthetic long-repeat case; shorter repeats improved **7.0x**.
 [Benchmarks, native-library acceleration, and reproduction instructions](docs/PERFORMANCE.md)
 
-## What comes with it
+## Components
 
 | Component | Availability |
 | --- | --- |
@@ -106,7 +98,7 @@ APK for command execution. Obtain the APKs from these repositories.
 The default build targets ARM64; [other build profiles](docs/BUILD_PROFILES.md)
 remain available. [Session and storage limitations](scripts/session-validate/README.md)
 
-## Try it
+## Usage
 
 Check the bundled Linux compatibility runtime:
 

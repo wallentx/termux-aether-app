@@ -2,10 +2,10 @@ name: Pixel SIMD benchmark
 on:
   push:
     branches: [dev, 'wallentx/**']
-    paths: ['scripts/pixel-validate/**', '.github/workflows/pixel_simd.yml']
+    paths: ['scripts/pixel-validate/**', '.github/workflows/pixel_simd.yml', '!**/*.md']
   pull_request:
     branches: [dev]
-    paths: ['scripts/pixel-validate/**', '.github/workflows/pixel_simd.yml']
+    paths: ['scripts/pixel-validate/**', '.github/workflows/pixel_simd.yml', '!**/*.md']
   workflow_dispatch:
 permissions:
   contents: read

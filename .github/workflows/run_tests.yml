@@ -49,3 +49,13 @@ jobs:
           python3 -B -m unittest discover -s scripts/aether -p 'test_*.py'
           python3 -B -m unittest discover -s scripts/suite -p 'test_*.py'
           ./gradlew test
+      - name: Preserve test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 7

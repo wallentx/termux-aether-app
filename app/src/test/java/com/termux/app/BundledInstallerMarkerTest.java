@@ -50,6 +50,13 @@ public class BundledInstallerMarkerTest {
         return file;
     }
 
+    @Test public void statShadowUsesAndroidFileTypesAndRetainsHostPermissions() throws Exception {
+        File file = payload();
+        assertEquals(OsConstants.S_IFREG | 0400, Os.lstat(file.getAbsolutePath()).st_mode);
+        Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rw-r-----"));
+        assertEquals(OsConstants.S_IFREG | 0640, Os.lstat(file.getAbsolutePath()).st_mode);
+    }
+
     @Test public void unchangedInstallationIsCurrentAcrossInstances() throws Exception {
         File file = payload();
         BundledRishInstaller.InstallMarker marker = marker(file, "apk-1");
@@ -206,8 +213,15 @@ public class BundledInstallerMarkerTest {
             try {
                 Map<String, Object> stat = Files.readAttributes(new File(path).toPath(), "unix:*",
                     LinkOption.NOFOLLOW_LINKS);
+                // Robolectric 4.10 uses synthetic file-type constants (for example,
+                // S_IFREG is 0x0100000, not POSIX 0100000). Translate only the type;
+                // retain the host's permission and special bits for mode checks.
+                int mode = (int) stat.get("mode") & 07777;
+                if ((boolean) stat.get("isRegularFile")) mode |= OsConstants.S_IFREG;
+                else if ((boolean) stat.get("isDirectory")) mode |= OsConstants.S_IFDIR;
+                else if ((boolean) stat.get("isSymbolicLink")) mode |= OsConstants.S_IFLNK;
                 return new StructStat((long) stat.get("dev"), (long) stat.get("ino"),
-                    (int) stat.get("mode"), (int) stat.get("nlink"), (int) stat.get("uid"),
+                    mode, (int) stat.get("nlink"), (int) stat.get("uid"),
                     (int) stat.get("gid"), (long) stat.get("rdev"), (long) stat.get("size"),
                     time((FileTime) stat.get("lastAccessTime")), time((FileTime) stat.get("lastModifiedTime")),
                     time((FileTime) stat.get("ctime")), 4096, 0);

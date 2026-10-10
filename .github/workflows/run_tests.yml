@@ -43,6 +43,7 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu
       - name: Execute tests
         run: |
+          bash scripts/session-validate/test-pidfd-support.sh
           python3 -B -m unittest discover -s scripts/pixel-validate -p 'test_*.py'
           python3 -B -m unittest discover -s scripts/render-benchmark -p 'test_*.py'
           python3 -B -m unittest discover -s scripts/aether -p 'test_*.py'

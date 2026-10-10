@@ -4,6 +4,14 @@ Normal SDK-29+ Aether sessions and TermuxService background commands require the
 session UserService. Recovery sessions retain the legacy launcher. Do not replay
 failed commands through another backend.
 
+The native launcher requires working `pidfd_open` and `pidfd_send_signal` syscalls
+to clean up descendants without signaling a reused PID. Each PTY/background start
+checks both with a signal-0 probe on itself before allocating descriptors or
+forking, and throws a capability error if either fails. Linux CI runs
+`bash scripts/session-validate/test-pidfd-support.sh` with fault-injected syscalls
+to cover supported kernels, missing syscall definitions, `ENOSYS`, and permission
+or descriptor failures; it does not replace device cancellation/EOF probes.
+
 Run `./gradlew test` and build the APK in CI. Focused tests are
 `SessionCommandTest`, `SessionStorageTest` and `AppShellBackgroundTest`. `NativeSessionProbe.java` can be
 compiled alongside `SessionNative`, `SessionSignals`, and `SessionCommand`, converted to DEX, and

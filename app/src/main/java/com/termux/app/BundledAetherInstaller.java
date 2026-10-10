@@ -25,35 +25,47 @@ final class BundledAetherInstaller {
         File runtime = new File(context.getFilesDir(), "aether");
         try {
             if (!runtime.isDirectory() && !runtime.mkdirs()) throw new IOException("Cannot create " + runtime);
-            for (String name : context.getAssets().list("aether")) {
-                try (InputStream input = context.getAssets().open("aether/" + name)) {
-                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[8192];
-                    int count;
-                    while ((count = input.read(buffer)) != -1) bytes.write(buffer, 0, count);
-                    BundledRishInstaller.installFile(new File(runtime, name), bytes.toByteArray(),
-                        name.equals("aether-probe"));
+            String[] assets = context.getAssets().list("aether");
+            if (assets == null) throw new IOException("Cannot list bundled Aether assets");
+            BundledRishInstaller.InstallMarker marker = new BundledRishInstaller.InstallMarker(runtime,
+                BundledRishInstaller.apkIdentity(context) + '\n' + Build.MANUFACTURER + '\n' + Build.MODEL);
+            for (String name : assets) marker.add(new File(runtime, name), name.equals("aether-probe"));
+            marker.add(new File(runtime, "sys_vendor"), false);
+            marker.add(new File(runtime, "product_name"), false);
+            marker.add(new File(runtime, "aether-run"), true);
+            boolean current = marker.isCurrent();
+            if (!current) {
+                for (String name : assets) {
+                    try (InputStream input = context.getAssets().open("aether/" + name)) {
+                        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                        byte[] buffer = new byte[8192];
+                        int count;
+                        while ((count = input.read(buffer)) != -1) bytes.write(buffer, 0, count);
+                        BundledRishInstaller.installFile(new File(runtime, name), bytes.toByteArray(),
+                            name.equals("aether-probe"));
+                    }
                 }
+                // Linux programs commonly identify hardware through DMI sysfs files,
+                // which are absent on Android. Use this device's public Android values.
+                BundledRishInstaller.installFile(new File(runtime, "sys_vendor"),
+                    (Build.MANUFACTURER + "\n").getBytes(StandardCharsets.UTF_8), false);
+                BundledRishInstaller.installFile(new File(runtime, "product_name"),
+                    (Build.MODEL + "\n").getBytes(StandardCharsets.UTF_8), false);
+                String script = "#!/system/bin/sh\nexport AETHER_RUNTIME='" + runtime.getAbsolutePath()
+                    + "'\nexport AETHER_SYS_VENDOR_FILE='" + new File(runtime, "sys_vendor").getAbsolutePath()
+                    + "'\nexport AETHER_PRODUCT_NAME_FILE='" + new File(runtime, "product_name").getAbsolutePath()
+                    + "'\nexport AETHER_RESOLV_CONF='" + TermuxConstants.TERMUX_PREFIX_DIR_PATH
+                    + "/etc/resolv.conf'\nexec '" + helper.getAbsolutePath() + "' \"$@\"\n";
+                BundledRishInstaller.installFile(new File(runtime, "aether-run"),
+                    script.getBytes(StandardCharsets.UTF_8), true);
             }
-            // Linux programs commonly identify hardware through DMI sysfs files,
-            // which are absent on Android. Use this device's public Android values.
-            BundledRishInstaller.installFile(new File(runtime, "sys_vendor"),
-                (Build.MANUFACTURER + "\n").getBytes(StandardCharsets.UTF_8), false);
-            BundledRishInstaller.installFile(new File(runtime, "product_name"),
-                (Build.MODEL + "\n").getBytes(StandardCharsets.UTF_8), false);
-            String script = "#!/system/bin/sh\nexport AETHER_RUNTIME='" + runtime.getAbsolutePath()
-                + "'\nexport AETHER_SYS_VENDOR_FILE='" + new File(runtime, "sys_vendor").getAbsolutePath()
-                + "'\nexport AETHER_PRODUCT_NAME_FILE='" + new File(runtime, "product_name").getAbsolutePath()
-                + "'\nexport AETHER_RESOLV_CONF='" + TermuxConstants.TERMUX_PREFIX_DIR_PATH
-                + "/etc/resolv.conf'\nexec '" + helper.getAbsolutePath() + "' \"$@\"\n";
-            BundledRishInstaller.installFile(new File(runtime, "aether-run"),
-                script.getBytes(StandardCharsets.UTF_8), true);
             try {
                 Os.symlink(new File(runtime, "aether-run").getAbsolutePath(),
                     new File(TermuxConstants.TERMUX_PREFIX_DIR, "bin/aether-run").getAbsolutePath());
             } catch (ErrnoException e) {
                 if (e.errno != OsConstants.EEXIST) throw e;
             }
+            if (!current) marker.record();
         } catch (IOException | ErrnoException e) {
             Logger.logError("BundledAetherInstaller", "Cannot install Aether runtime: " + e.getMessage());
         }

@@ -1,13 +1,18 @@
 package com.termux.app;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.OsConstants;
+import android.system.StructStat;
 
 import com.termux.shared.logger.Logger;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Installs the optional shell client without changing the user's Shizuku authorization. */
 final class BundledRishInstaller {
@@ -25,19 +32,26 @@ final class BundledRishInstaller {
             File directory = new File(prefix, "libexec/termux-rish");
             if (!directory.isDirectory() && !directory.mkdirs())
                 throw new IOException("Cannot create " + directory);
-            for (String name : new String[]{"rish_shizuku.dex", "LICENSE", "NOTICE"}) {
-                try (InputStream input = context.getAssets().open("rish/" + name)) {
-                    installFile(new File(directory, name), readAll(input), false);
+            String[] assets = {"rish_shizuku.dex", "LICENSE", "NOTICE"};
+            InstallMarker marker = new InstallMarker(directory, apkIdentity(context));
+            for (String name : assets) marker.add(new File(directory, name), false);
+            marker.add(new File(directory, "termux-rish"), true);
+            boolean current = marker.isCurrent();
+            if (!current) {
+                for (String name : assets) {
+                    try (InputStream input = context.getAssets().open("rish/" + name)) {
+                        installFile(new File(directory, name), readAll(input), false);
+                    }
                 }
+                byte[] launcher;
+                try (InputStream input = context.getAssets().open("rish/termux-rish")) {
+                    launcher = new String(readAll(input), StandardCharsets.UTF_8)
+                        .replace("@PREFIX@", prefix.getAbsolutePath())
+                        .replace("@PACKAGE@", context.getPackageName())
+                        .getBytes(StandardCharsets.UTF_8);
+                }
+                installFile(new File(directory, "termux-rish"), launcher, true);
             }
-            byte[] launcher;
-            try (InputStream input = context.getAssets().open("rish/termux-rish")) {
-                launcher = new String(readAll(input), StandardCharsets.UTF_8)
-                    .replace("@PREFIX@", prefix.getAbsolutePath())
-                    .replace("@PACKAGE@", context.getPackageName())
-                    .getBytes(StandardCharsets.UTF_8);
-            }
-            installFile(new File(directory, "termux-rish"), launcher, true);
             // EEXIST also preserves dangling symlinks and manually installed commands.
             for (String name : new String[]{"termux-rish", "rish"}) {
                 try {
@@ -47,15 +61,111 @@ final class BundledRishInstaller {
                     if (e.errno != OsConstants.EEXIST) throw e;
                 }
             }
+            if (!current) marker.record();
         } catch (IOException | ErrnoException e) {
             // An optional client must never send an existing prefix into bootstrap reset.
             Logger.logError("BundledRishInstaller", "Cannot install rish: " + e.getMessage());
         }
     }
 
+    // versionCode is deliberately shared by development builds, so use the actual
+    // installed APK identity, including split APKs and reinstall/update time.
+    static String apkIdentity(Context context) throws IOException {
+        ApplicationInfo info = context.getApplicationInfo();
+        StringBuilder identity = new StringBuilder(context.getPackageName());
+        try {
+            identity.append('\n').append(context.getPackageManager()
+                .getPackageInfo(context.getPackageName(), 0).lastUpdateTime);
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new IOException("Cannot identify installed APK", e);
+        }
+        appendApk(identity, info.sourceDir);
+        if (info.splitSourceDirs != null) {
+            for (String path : info.splitSourceDirs) appendApk(identity, path);
+        }
+        return identity.append('\n').append(info.nativeLibraryDir).toString();
+    }
+
+    private static void appendApk(StringBuilder identity, String path) {
+        File apk = new File(path);
+        identity.append('\n').append(path).append(':').append(apk.length())
+            .append(':').append(apk.lastModified());
+    }
+
+    /** Small receipt checked with stat calls, without reading runtime assets or installed payloads. */
+    static final class InstallMarker {
+        private final File marker;
+        private final String identity;
+        private final Map<File, Boolean> files = new LinkedHashMap<>();
+
+        InstallMarker(File directory, String identity) {
+            marker = new File(directory, ".installed-v1");
+            this.identity = identity;
+        }
+
+        void add(File file, boolean executable) {
+            files.put(file, executable);
+        }
+
+        boolean isCurrent() throws IOException {
+            // Older StructStat APIs expose ctime only in seconds, which can hide
+            // same-size rewrites. Retain content comparisons on those devices.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return false;
+            byte[] state = snapshot();
+            if (state == null || !marker.getAbsoluteFile().equals(marker.getCanonicalFile())
+                || !marker.isFile() || marker.length() != state.length) return false;
+            try (InputStream input = new FileInputStream(marker)) {
+                return Arrays.equals(state, readAll(input));
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        // Publish only after every file and command link has been installed. An
+        // interrupted or failed update retains a stale receipt and is retried.
+        void record() throws IOException {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return;
+            byte[] state = snapshot();
+            if (state == null) throw new IOException("Incomplete bundled installation: " + marker);
+            installFile(marker, state, false);
+        }
+
+        private byte[] snapshot() throws IOException {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            try (DataOutputStream output = new DataOutputStream(bytes)) {
+                output.writeUTF(identity);
+                for (Map.Entry<File, Boolean> entry : files.entrySet()) {
+                    File file = entry.getKey();
+                    if (!file.getAbsoluteFile().equals(file.getCanonicalFile())) return null;
+                    StructStat stat;
+                    try {
+                        stat = Os.lstat(file.getAbsolutePath());
+                    } catch (ErrnoException e) {
+                        return null;
+                    }
+                    int mode = OsConstants.S_IFREG | (entry.getValue() ? 0500 : 0400);
+                    if (stat.st_mode != mode) return null;
+                    output.writeUTF(file.getAbsolutePath());
+                    output.writeLong(stat.st_dev);
+                    output.writeLong(stat.st_ino);
+                    output.writeLong(stat.st_size);
+                    output.writeInt(stat.st_mode);
+                    output.writeLong(stat.st_mtime);
+                    output.writeLong(stat.st_ctime);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                        output.writeLong(stat.st_mtim.tv_nsec);
+                        output.writeLong(stat.st_ctim.tv_nsec);
+                    }
+                }
+            }
+            return bytes.toByteArray();
+        }
+    }
+
     static void installFile(File destination, byte[] content, boolean executable) throws IOException {
         // Do not chmod a symlink target. Replace the link atomically below instead.
-        if (destination.getAbsoluteFile().equals(destination.getCanonicalFile()) && destination.isFile()) {
+        if (destination.getAbsoluteFile().equals(destination.getCanonicalFile())
+            && destination.isFile() && destination.canRead()) {
             try (InputStream input = new FileInputStream(destination)) {
                 if (Arrays.equals(content, readAll(input))) {
                     setPermissions(destination, executable);

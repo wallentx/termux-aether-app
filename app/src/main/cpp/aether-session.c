@@ -33,6 +33,29 @@ static void fail(JNIEnv *env, const char *message) {
     (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/IllegalStateException"), message);
 }
 
+static int require_pidfd_support(JNIEnv *env) {
+    // Descendant cleanup must pin process identities before inspecting/signaling
+    // them. Refuse to start a command if the kernel cannot provide that guarantee.
+#if defined(__NR_pidfd_open) && defined(__NR_pidfd_send_signal)
+    int pidfd = (int) syscall(__NR_pidfd_open, getpid(), 0);
+    if (pidfd >= 0) {
+        // Signal 0 checks support/permission without delivering a signal.
+        int result = (int) syscall(__NR_pidfd_send_signal, pidfd, 0, NULL, 0);
+        int error = errno;
+        close(pidfd);
+        if (result == 0) return 1;
+        errno = error;
+    }
+#else
+    errno = ENOSYS;
+#endif
+    char message[256];
+    snprintf(message, sizeof(message),
+        "Shizuku sessions require pidfd_open and pidfd_send_signal for safe cleanup: %s", strerror(errno));
+    fail(env, message);
+    return 0;
+}
+
 static char *copy_string(JNIEnv *env, jbyteArray text) {
     if (!text) return NULL;
     jsize length = (*env)->GetArrayLength(env, text);
@@ -125,7 +148,7 @@ static void monitor_child(pid_t pid, int control, char *package, char *class_pat
     if (send_int(control, pid) < 0) goto lost;
     for (;;) {
         struct pollfd ready[] = {{control, POLLIN, 0}, {exited ? -1 : pidfd, POLLIN, 0}};
-        // Older kernels without pidfds use a bounded waitid check instead.
+        // A per-child pidfd failure still permits bounded waitid exit checks.
         int result = poll(ready, 2, exited || pidfd >= 0 ? -1 : 100);
         if (result < 0 && errno == EINTR) continue;
         if (result < 0) goto lost;
@@ -171,6 +194,9 @@ JNIEXPORT jintArray JNICALL Java_com_termux_app_session_SessionNative_startUtf8(
         JNIEnv *env, jclass type, jbyteArray package, jbyteArray script, jobjectArray environment,
         jint rows, jint cols, jint cell_width, jint cell_height, jboolean terminal) {
     (void) type;
+    // Throw through the start call, before creating pipes or forking, so the
+    // caller gets the capability error instead of a service startup timeout.
+    if (!require_pidfd_support(env)) return NULL;
     char *pkg = copy_string(env, package), *command = copy_string(env, script);
     jsize count = (*env)->GetArrayLength(env, environment);
     char **envp = calloc((size_t) count + 1, sizeof(char *));

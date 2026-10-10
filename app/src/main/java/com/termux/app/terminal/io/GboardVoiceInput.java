@@ -14,7 +14,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.termux.app.R;
+import com.termux.R;
 import com.termux.app.TermuxActivity;
 import com.termux.app.session.SessionManager;
 import com.termux.shared.termux.TermuxConstants;

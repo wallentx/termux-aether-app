@@ -4,13 +4,40 @@
 [![Tests](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml/badge.svg?branch=dev)](https://github.com/wallentx/termux-aether-app/actions/workflows/run_tests.yml?query=branch%3Adev)
 
 **A Linux development environment built for modern Android.** Termux-Æther combines
-Pacman packages, native Linux binary compatibility, and an optional
-hardware-virtualized Arch workspace with a faster, more convenient terminal.
+native command execution on current Android, Pacman packages, Linux binary
+compatibility, and an optional hardware-virtualized Arch workspace with a faster,
+more convenient terminal.
 Development and device testing focus on the **Pixel 11 Pro XL running Android 17**.
 
 [Install or upgrade](docs/RELEASES.md) · [Downloads](https://github.com/wallentx/termux-aether-app/releases/latest) · [Report an issue](https://github.com/wallentx/termux-aether-app/issues)
 
 ## What sets it apart
+
+### Native execution on modern Android
+
+For apps targeting Android 10 or later, Android restricts execution of programs
+stored in an app's writable private directory. Working around this with explicit
+linker invocation or preload hooks can require per-tool patches, particularly for programs that
+launch subprocesses or restart themselves.
+
+By default on modern Android, Termux-Æther launches all normal terminal sessions
+and app-managed background jobs through Shizuku and Android's `run-as`, in a
+context that permits direct execution while retaining Termux's user ID and Android's native Bionic C library.
+Commands run in this context automatically, and ordinary child processes inherit it;
+no per-command wrapper or opt-in is needed. This supports workflows such as
+compiling software, running scripts that invoke other tools, and starting worker
+processes without relying on explicit linker invocation for their normal execution.
+The explicit recovery shell retains the legacy launcher.
+
+It also includes a separate `aether-run` command that launches supported Linux
+ARM64/glibc binaries through a bundled glibc loader and compatibility libraries,
+with Android-backed hostname lookup (`getaddrinfo`) and mappings for common
+certificate paths. This runs on the Android kernel without PRoot or a VM; it does
+not replace Bionic for normal Termux commands.
+
+[Execution details](scripts/session-validate/README.md) · [glibc compatibility and limitations](scripts/aether/README.md)
+
+### More features
 
 - **More Linux tools, directly on Android.** The bundled Aether runtime runs
   supported Linux ARM64/glibc programs without PRoot or a VM, with Android-aware
@@ -25,7 +52,7 @@ Development and device testing focus on the **Pixel 11 Pro XL running Android 17
   Monet theming, configurable voice-input and session-menu keys, Ctrl+tap links,
   **Copy as one line**, and an in-app **Keep screen on** option.
 - **Android integration without root.** Bundled Shizuku integration supports
-  native command execution and shared-storage access. Inspect device capabilities,
+  shared-storage access. Inspect device capabilities,
   temperatures, and thermal limits with the companion diagnostic tools.
   [Device tools](docs/PIXEL11_VALIDATION.md) · [Shizuku shell](docs/RISH.md)
 

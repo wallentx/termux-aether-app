@@ -11,5 +11,6 @@ interface ISessionService {
     BackgroundHandle startBackground(String executable, String cwd, in String[] argv,
         in String[] environment, ISessionCallback callback) = 3;
     boolean tapGboardMicrophone(int x, int y, int width, int height, String fingerprint, IGboardTapGuard guard) = 4;
+    boolean startGboardDictation(IGboardTapGuard guard) = 5;
     void destroy() = 16777114;
 }

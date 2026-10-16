@@ -140,6 +140,14 @@ public final class SessionManager {
         catch (RemoteException | RuntimeException unavailable) { return false; }
     }
 
+    /** Call off the UI thread. A failed request leaves manual Gboard input available. */
+    public boolean startGboardDictation(IGboardTapGuard guard) {
+        ISessionService current = service;
+        if (current == null || !isReady()) return false;
+        try { return current.startGboardDictation(guard); }
+        catch (RemoteException | RuntimeException unavailable) { return false; }
+    }
+
     private void notifyChanged() { for (Runnable listener : listeners) listener.run(); }
 
     private void connect(boolean requestPermission) {

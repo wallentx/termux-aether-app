@@ -117,6 +117,11 @@ public final class SessionUserService extends ISessionService.Stub {
         return GboardMicTap.tap(packageName, x, y, width, height, fingerprint, guard);
     }
 
+    @Override public boolean startGboardDictation(IGboardTapGuard guard) {
+        checkCaller();
+        return GboardDictation.start(packageName, guard);
+    }
+
     @Override public void destroy() {
         int uid = Binder.getCallingUid();
         if (uid != ownerUid && uid != Process.myUid() && uid != 0) throw new SecurityException("Wrong UID");

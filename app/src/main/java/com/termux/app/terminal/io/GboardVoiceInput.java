@@ -6,7 +6,6 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -17,14 +16,7 @@ import android.widget.Toast;
 import com.termux.R;
 import com.termux.app.TermuxActivity;
 import com.termux.app.session.SessionManager;
-import com.termux.shared.termux.TermuxConstants;
 import com.termux.terminal.TerminalSession;
-
-import org.json.JSONObject;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 /** A real IME editor kept out of the toolbar; only Send transfers its draft to the terminal. */
 public final class GboardVoiceInput {
@@ -32,7 +24,7 @@ public final class GboardVoiceInput {
     private EditText editor;
     private String sessionHandle;
     private long generation;
-    private java.util.concurrent.atomic.AtomicBoolean tapAllowed;
+    private java.util.concurrent.atomic.AtomicBoolean dictationAllowed;
 
     public GboardVoiceInput(TermuxActivity activity) { this.activity = activity; }
     public boolean isActive() { return editor != null; }
@@ -47,7 +39,7 @@ public final class GboardVoiceInput {
         sessionHandle = session.mHandle;
         final long attempt = ++generation;
         final java.util.concurrent.atomic.AtomicBoolean allowed = new java.util.concurrent.atomic.AtomicBoolean(true);
-        tapAllowed = allowed;
+        dictationAllowed = allowed;
         editor = new EditText(activity) {
             @Override public boolean onKeyPreIme(int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -104,31 +96,24 @@ public final class GboardVoiceInput {
             else toast(R.string.gboard_voice_manual);
             return;
         }
-        // No guessed coordinates: an optional local calibration names a tested icon image.
+        // Android's Dictation key reaches the IME; terminal key mappings do not.
         try {
+            if (Build.VERSION.SDK_INT < 36) throw new IllegalStateException();
             String selected = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
-            File file = new File(TermuxConstants.TERMUX_HOME_DIR_PATH, ".termux/gboard-mic.json");
-            if (file.length() > 4096 || !file.isFile()) throw new IllegalStateException();
-            JSONObject profile = new JSONObject(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
-            if (!"com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME".equals(selected)
-                || !selected.equals(profile.getString("ime"))) throw new IllegalStateException();
-            android.content.pm.PackageInfo info = activity.getPackageManager().getPackageInfo("com.google.android.inputmethod.latin", 0);
-            if (info.getLongVersionCode() != profile.getLong("versionCode")) throw new IllegalStateException();
-            int x = profile.getInt("x"), y = profile.getInt("y");
-            int width = profile.getInt("width"), height = profile.getInt("height");
-            String fingerprint = profile.getString("fingerprint");
+            if (!"com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME".equals(selected))
+                throw new IllegalStateException();
             SessionManager manager = SessionManager.get(activity);
-            final java.util.concurrent.atomic.AtomicBoolean allowed = tapAllowed;
+            final java.util.concurrent.atomic.AtomicBoolean allowed = dictationAllowed;
             com.termux.app.session.IGboardTapGuard guard = new com.termux.app.session.IGboardTapGuard.Stub() {
                 @Override public boolean isAllowed() { return allowed.get(); }
             };
             new Thread(() -> {
                 // UI checks belong on the UI thread; capture happened before dispatch.
-                boolean tapped = manager.tapGboardMicrophone(x, y, width, height, fingerprint, guard);
+                boolean requested = manager.startGboardDictation(guard);
                 activity.runOnUiThread(() -> {
-                    if (isCurrent(attempt) && !tapped) toast(R.string.gboard_voice_manual);
+                    if (isCurrent(attempt) && !requested) toast(R.string.gboard_voice_manual);
                 });
-            }, "aether-gboard-mic").start();
+            }, "aether-gboard-dictation").start();
         } catch (Exception unavailable) {
             toast(R.string.gboard_voice_manual);
         }
@@ -136,7 +121,7 @@ public final class GboardVoiceInput {
 
     public void cancel() {
         ++generation;
-        if (tapAllowed != null) tapAllowed.set(false);
+        if (dictationAllowed != null) dictationAllowed.set(false);
         EditText previous = editor;
         editor = null;
         sessionHandle = null;

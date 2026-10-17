@@ -9,11 +9,20 @@ extra-keys = [['ESC','TAB','CTRL','ALT','DRAWER','VOICE','GBOARD']]
 ```
 
 Reload settings after editing. Tapping `GBOARD` focuses a transparent text editor
-without replacing the extra-key row. Dictate, tap Gboard's checkmark, then its
-Send key to insert the finished text into the original terminal session.
+without replacing the extra-key row. Dictate and tap Gboard's checkmark: when
+Gboard commits the result, it appears in the original terminal session without
+an extra Send tap. Intermediate composing text stays in the editor; edits in a
+batch finish before insertion. The keyboard's Send action remains a fallback.
 Insertion does not press Enter; line breaks and terminal control characters
 are filtered. Tap `GBOARD` again or press Back to discard the draft. Leaving the
 activity or moving focus away cancels it. Drafts are not saved across restarts.
+
+Automatic insertion follows the keyboard's committed-text events, not a direct
+notification of the checkmark tap. Rambler's complete-result delivery is the
+intended flow. A dictation mode that commits separate clauses while still
+listening can finish this capture early; device acceptance must include pauses
+and spoken corrections before the checkmark. This completion behavior still
+requires validation on the updated APK.
 
 ## Automatic dictation
 

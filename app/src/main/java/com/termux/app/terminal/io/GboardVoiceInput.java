@@ -7,7 +7,9 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.WindowInsets;
+import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -18,12 +20,13 @@ import com.termux.app.TermuxActivity;
 import com.termux.app.session.SessionManager;
 import com.termux.terminal.TerminalSession;
 
-/** A real IME editor kept out of the toolbar; only Send transfers its draft to the terminal. */
+/** A real IME editor kept out of the toolbar; committed dictation transfers to the terminal. */
 public final class GboardVoiceInput {
     private final TermuxActivity activity;
     private EditText editor;
     private String sessionHandle;
     private long generation;
+    private long connectionGeneration;
     private java.util.concurrent.atomic.AtomicBoolean dictationAllowed;
 
     public GboardVoiceInput(TermuxActivity activity) { this.activity = activity; }
@@ -41,6 +44,17 @@ public final class GboardVoiceInput {
         final java.util.concurrent.atomic.AtomicBoolean allowed = new java.util.concurrent.atomic.AtomicBoolean(true);
         dictationAllowed = allowed;
         editor = new EditText(activity) {
+            @Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+                InputConnection target = super.onCreateInputConnection(outAttrs);
+                final long connection = ++connectionGeneration;
+                return GboardInputConnection.wrap(target, Build.VERSION.SDK_INT, this::post,
+                    () -> editor == this && generation == attempt && connectionGeneration == connection
+                        && hasFocus() && activity.hasWindowFocus(),
+                    () -> BaseInputConnection.getComposingSpanStart(getText()) != -1
+                        || BaseInputConnection.getComposingSpanEnd(getText()) != -1,
+                    () -> submit(attempt, this));
+            }
+
             @Override public boolean onKeyPreIme(int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
                     if (event.getAction() == KeyEvent.ACTION_UP) cancel();
@@ -61,12 +75,7 @@ public final class GboardVoiceInput {
             if (action != EditorInfo.IME_ACTION_SEND
                 && (event == null || event.getKeyCode() != KeyEvent.KEYCODE_ENTER
                     || event.getAction() != KeyEvent.ACTION_DOWN)) return false;
-            TerminalSession current = activity.getCurrentSession();
-            String text = VoiceInputText.forTerminal(editor.getText().toString());
-            boolean sameSession = current != null && current.isRunning() && current.mHandle.equals(sessionHandle);
-            cancel();
-            if (!sameSession) toast(R.string.msg_voice_input_session_changed);
-            else if (!text.isEmpty()) current.write(text);
+            submit(attempt, (EditText) view);
             return true;
         });
         editor.setOnFocusChangeListener((view, focused) -> {
@@ -85,6 +94,20 @@ public final class GboardVoiceInput {
         TerminalSession session = activity.getCurrentSession();
         return editor != null && generation == attempt && editor.hasFocus() && activity.hasWindowFocus()
             && session != null && session.isRunning() && session.mHandle.equals(sessionHandle);
+    }
+
+    private void submit(long attempt, EditText source) {
+        if (editor != source || generation != attempt || !source.hasFocus() || !activity.hasWindowFocus()) return;
+        TerminalSession current = activity.getCurrentSession();
+        if (current == null || !current.isRunning() || !current.mHandle.equals(sessionHandle)) {
+            cancel();
+            toast(R.string.msg_voice_input_session_changed);
+            return;
+        }
+        String text = VoiceInputText.forTerminal(source.getText().toString());
+        if (text.isEmpty()) return; // IMEs also finish composition during setup and teardown.
+        cancel();
+        current.write(text);
     }
 
     private void awaitKeyboard(long attempt, long deadline) {

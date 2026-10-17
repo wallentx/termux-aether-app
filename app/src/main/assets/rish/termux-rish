@@ -1,0 +1,13 @@
+#!/system/bin/sh
+# Termux bundled rish launcher. Installed and updated by the APK.
+DEX='@PREFIX@/libexec/termux-rish/rish_shizuku.dex'
+if [ ! -r "$DEX" ] || [ -w "$DEX" ]; then
+    echo 'rish: reopen Termux to restore its bundled, read-only shell loader.' >&2
+    exit 1
+fi
+export RISH_APPLICATION_ID='@PACKAGE@'
+# Termux private PATH and preload libraries are inaccessible to the ADB shell UID.
+export RISH_PRESERVE_ENV="${RISH_PRESERVE_ENV:-0}"
+unset LD_PRELOAD LD_LIBRARY_PATH
+exec /system/bin/app_process -Djava.class.path="$DEX" /system/bin --nice-name=rish \
+    rikka.shizuku.shell.ShizukuShellLoader "$@"

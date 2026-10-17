@@ -1,0 +1,133 @@
+{
+  "sdk": 37,
+  "device": "Pixel 11 Pro XL",
+  "fingerprint": "google\/kodiak_beta\/kodiak:17\/CP41.260828.004.A8\/16319058:user\/release-keys",
+  "label": "old-2",
+  "samples": 5,
+  "minimum_sample_ms": 150,
+  "unit": "microseconds per operation",
+  "scope": "Existing blockSet\/blockCopy APIs; excludes buffer creation, PTY, parsing and rendering",
+  "limitations": "Unpinned CPU and uncontrolled clocks; Unicode clear timing uses previously complex rows after clearing; no instruction-level SIMD claim",
+  "results": [
+    {
+      "name": "clear_80x24",
+      "one_operation_fingerprint": "7e37beb254406d01",
+      "microseconds": [
+        27.10654507902299,
+        27.339046693313954,
+        27.11131088362069,
+        27.230888469827587,
+        27.111582255747127
+      ],
+      "median_us": 27.111582255747127
+    },
+    {
+      "name": "clear_160x48",
+      "one_operation_fingerprint": "d2853b0864a1a01",
+      "microseconds": [
+        108.15930823863637,
+        107.70118536931818,
+        107.68582315340909,
+        108.3937315340909,
+        109.24737926136363
+      ],
+      "median_us": 108.15930823863637
+    },
+    {
+      "name": "partial_fill_160x48",
+      "one_operation_fingerprint": "ab0148e055fa4ed5",
+      "microseconds": [
+        54.05452769886364,
+        54.25225426136364,
+        54.03955575284091,
+        55.93630766369048,
+        54.535375
+      ],
+      "median_us": 54.25225426136364
+    },
+    {
+      "name": "single_cell",
+      "one_operation_fingerprint": "f039cba768e675d9",
+      "microseconds": [
+        0.02054354790642229,
+        0.020298267320033602,
+        0.020281524205830688,
+        0.020255383069743324,
+        0.020273012715163047
+      ],
+      "median_us": 0.020281524205830688
+    },
+    {
+      "name": "copy_row_160",
+      "one_operation_fingerprint": "5e0e2efeeaa5c5c3",
+      "microseconds": [
+        2.413587512860082,
+        2.4160765158341917,
+        2.4112196011048304,
+        2.4135050315072015,
+        2.4111481885919837
+      ],
+      "median_us": 2.4135050315072015
+    },
+    {
+      "name": "overlap_left_160",
+      "one_operation_fingerprint": "1ed87b8bdc44ab02",
+      "microseconds": [
+        2.6782374964326485,
+        2.630660704264871,
+        2.643254368658399,
+        2.6486425494350283,
+        2.6431074042792795
+      ],
+      "median_us": 2.643254368658399
+    },
+    {
+      "name": "overlap_right_160",
+      "one_operation_fingerprint": "3b310527cdf923a2",
+      "microseconds": [
+        3.782660987903226,
+        3.6290892269736843,
+        3.624454332496136,
+        3.6213646074459875,
+        3.610070408653846
+      ],
+      "median_us": 3.624454332496136
+    },
+    {
+      "name": "copy_scroll_region_160x48",
+      "one_operation_fingerprint": "3a5ed2e7ef107959",
+      "microseconds": [
+        112.8616755952381,
+        112.73249404761904,
+        112.87054910714286,
+        112.72871577380953,
+        112.72695238095238
+      ],
+      "median_us": 112.73249404761904
+    },
+    {
+      "name": "unicode_clear_80x24",
+      "one_operation_fingerprint": "7e37beb254406d01",
+      "microseconds": [
+        1509.9179921875,
+        1509.144671875,
+        1510.108421875,
+        1510.0396484375,
+        1544.755640625
+      ],
+      "median_us": 1510.0396484375
+    },
+    {
+      "name": "unicode_copy_row_80",
+      "one_operation_fingerprint": "494cdaff6c44b81",
+      "microseconds": [
+        71.92021496212121,
+        71.86399289772727,
+        72.37523295454545,
+        72.00862263257575,
+        72.04274053030304
+      ],
+      "median_us": 72.00862263257575
+    }
+  ]
+}

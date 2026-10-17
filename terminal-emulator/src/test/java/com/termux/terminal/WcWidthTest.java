@@ -15,6 +15,18 @@ public class WcWidthTest extends TestCase {
 		}
 	}
 
+	public void testAsciiFastPathBoundaries() {
+		for (int i = 0; i < 0x20; i++) assertWidthIs(0, i);
+		for (int i = 0x7F; i <= 0x9F; i++) assertWidthIs(0, i);
+		assertWidthIs(1, 0xA0);
+		char[] chars = {' ', '~', '\u007f', '\u0302', '\ud83d', '\ude42'};
+		assertEquals(1, WcWidth.width(chars, 0));
+		assertEquals(1, WcWidth.width(chars, 1));
+		assertEquals(0, WcWidth.width(chars, 2));
+		assertEquals(0, WcWidth.width(chars, 3));
+		assertEquals(2, WcWidth.width(chars, 4));
+	}
+
 	public void testSomeWidthOne() {
 		assertWidthIs(1, 'å');
 		assertWidthIs(1, 'ä');

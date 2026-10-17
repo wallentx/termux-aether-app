@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.RecordingCanvas;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -18,6 +20,19 @@ import java.util.Properties;
 public class TerminalBitmap {
 
     public static final String LOG_TAG = "TerminalBitmap";
+
+    // Destination pixels are new and transparent. Copy directly without filtering,
+    // dithering or source-over blending; this paint is never mutated after creation.
+    private static final Paint BITMAP_COPY_PAINT = createBitmapCopyPaint();
+
+    private static Paint createBitmapCopyPaint() {
+        Paint paint = new Paint();
+        paint.setFilterBitmap(false);
+        paint.setDither(false);
+        paint.setAntiAlias(false);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+        return paint;
+    }
 
 
 
@@ -439,14 +454,15 @@ public class TerminalBitmap {
                 return null;
             }
 
-            int[] pixels = new int[bitmap.getAllocationByteCount()];
-            bitmap.getPixels(pixels, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-
             newBitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888);
 
             int newWidth = Math.min(bitmap.getWidth(), bitmapWidth);
             int newHeight = Math.min(bitmap.getHeight(), bitmapHeight);
-            newBitmap.setPixels(pixels, 0, bitmap.getWidth(), 0, 0, newWidth, newHeight);
+            // Copy directly between native bitmap buffers. Explicit equal-sized rectangles
+            // avoid density scaling and leave newly exposed pixels transparent, without a
+            // full-size Java pixel array and its two extra copies on every growth step.
+            Rect copyRect = new Rect(0, 0, newWidth, newHeight);
+            new Canvas(newBitmap).drawBitmap(bitmap, copyRect, copyRect, BITMAP_COPY_PAINT);
             return newBitmap;
         } catch (Throwable t) {
             if (t instanceof OutOfMemoryError) System.gc();

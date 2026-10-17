@@ -63,7 +63,9 @@ public final class TerminalSession extends TerminalOutput {
      * The file descriptor referencing the master half of a pseudo-terminal pair, resulting from calling
      * {@link JNI#createSubprocess(String, String, String[], String[], int[], int, int, int, int)}.
      */
-    private int mTerminalFileDescriptor;
+    private int mTerminalFileDescriptor = -1;
+    private TerminalSessionProcess.Factory mProcessFactory;
+    private TerminalSessionProcess mExternalProcess;
 
     /** Set by the application for user identification of session, not by terminal. */
     public String mSessionName;
@@ -99,6 +101,12 @@ public final class TerminalSession extends TerminalOutput {
             mEmulator.updateTerminalSessionClient(client);
     }
 
+    /** Must be selected before the emulator starts; never retry a command in another context. */
+    public void setProcessFactory(TerminalSessionProcess.Factory factory) {
+        if (mEmulator != null) throw new IllegalStateException("Session already started");
+        mProcessFactory = factory;
+    }
+
     /** Inform the attached pty of the new size and reflow or initialize the emulator. */
     public void updateSize(int columns, int rows, int cellWidthPixels, int cellHeightPixels) {
         if (mEmulator == null) {
@@ -124,8 +132,25 @@ public final class TerminalSession extends TerminalOutput {
         mEmulator = new TerminalEmulator(this, columns, rows, cellWidthPixels, cellHeightPixels, mTranscriptRows, mClient);
 
         int[] processId = new int[1];
-        mTerminalFileDescriptor = JNI.createSubprocess(mShellPath, mCwd, mArgs, mEnv, processId, rows, columns, cellWidthPixels, cellHeightPixels);
-        mShellPid = processId[0];
+        try {
+            if (mProcessFactory == null) {
+                mTerminalFileDescriptor = JNI.createSubprocess(mShellPath, mCwd, mArgs, mEnv, processId, rows, columns, cellWidthPixels, cellHeightPixels);
+                mShellPid = processId[0];
+            } else {
+                mExternalProcess = mProcessFactory.start(mShellPath, mCwd, mArgs, mEnv,
+                    rows, columns, cellWidthPixels, cellHeightPixels);
+                mShellPid = mExternalProcess.getPid();
+                mTerminalFileDescriptor = mExternalProcess.takeMasterFd();
+            }
+        } catch (Exception error) {
+            if (mExternalProcess != null) mExternalProcess.stop();
+            byte[] message = ("\r\nCannot start session: " + error.getMessage()
+                + (mProcessFactory == null ? "\r\n" : "\r\nReconnect Shizuku and create a new session.\r\n"))
+                .getBytes(StandardCharsets.UTF_8);
+            mEmulator.append(message, message.length);
+            mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, 127));
+            return;
+        }
         mClient.setTerminalShellPid(this, mShellPid);
 
         final FileDescriptor terminalFileDescriptorWrapped = wrapFileDescriptor(mTerminalFileDescriptor, mClient);
@@ -166,7 +191,7 @@ public final class TerminalSession extends TerminalOutput {
         new Thread("TermSessionWaiter[pid=" + mShellPid + "]") {
             @Override
             public void run() {
-                int processExitCode = JNI.waitFor(mShellPid);
+                int processExitCode = mExternalProcess == null ? JNI.waitFor(mShellPid) : mExternalProcess.waitFor();
                 mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, processExitCode));
             }
         }.start();
@@ -233,7 +258,11 @@ public final class TerminalSession extends TerminalOutput {
 
     /** Finish this terminal session by sending SIGKILL to the shell. */
     public void finishIfRunning() {
-        if (isRunning()) {
+        if (mShellPid > 0) {
+            if (mExternalProcess != null) {
+                mExternalProcess.stop();
+                return;
+            }
             try {
                 Os.kill(mShellPid, OsConstants.SIGKILL);
             } catch (ErrnoException e) {
@@ -252,7 +281,11 @@ public final class TerminalSession extends TerminalOutput {
         // Stop the reader and writer threads, and close the I/O streams
         mTerminalToProcessIOQueue.close();
         mProcessToTerminalIOQueue.close();
-        JNI.close(mTerminalFileDescriptor);
+        if (mTerminalFileDescriptor >= 0) {
+            JNI.close(mTerminalFileDescriptor);
+            mTerminalFileDescriptor = -1;
+        }
+        if (mExternalProcess != null) mExternalProcess.close();
     }
 
     @Override
@@ -298,6 +331,7 @@ public final class TerminalSession extends TerminalOutput {
         if (mShellPid < 1) {
             return null;
         }
+        if (mExternalProcess != null) return mExternalProcess.getCwd();
         try {
             final String cwdSymlink = String.format("/proc/%s/cwd/", mShellPid);
             String outputPath = new File(cwdSymlink).getCanonicalPath();

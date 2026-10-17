@@ -1,0 +1,1122 @@
+{
+  "schema_version": 1,
+  "uid": 10445,
+  "started_at": 1790037130.0561235,
+  "script_sha256": "d1b964611758035b2ca8fae5f0f3fd7daf26947a1175743b2df62ca7c98f61e3",
+  "parameters": {
+    "samples": 5,
+    "seconds_per_operation": 0.3
+  },
+  "packages": {
+    "returncode": 0,
+    "stdout": "libjpeg-turbo 3.2.0-0\nzlib 1.3.2-0\nlibdeflate 1.26-0\n",
+    "stderr": ""
+  },
+  "before": {
+    "schema_version": 1,
+    "timestamp_unix_ms": 1790037131502,
+    "device": {
+      "status": "ok",
+      "manufacturer": "Google",
+      "model": "Pixel 11 Pro XL",
+      "android_release": "17",
+      "sdk": 37,
+      "supported_abis": [
+        "arm64-v8a"
+      ],
+      "api_app_version": "0.53.0+60018b9",
+      "api_app_target_sdk": 37,
+      "uid": 10445
+    },
+    "cpu": {
+      "status": "ok",
+      "source": "getauxval in the Termux:API process",
+      "architecture": "aarch64",
+      "hwcap": "0xffffffff",
+      "hwcap2": "0x51a8bc9af3ff",
+      "hwcap_errno": 0,
+      "hwcap2_errno": 0,
+      "features": {
+        "asimd": true,
+        "aes": true,
+        "sha2": true,
+        "crc32": true,
+        "asimdhp": true,
+        "sha3": true,
+        "asimddp": true,
+        "sha512": true,
+        "sve": true,
+        "asimdfhm": true,
+        "sve2": true,
+        "svei8mm": true,
+        "svebf16": true,
+        "i8mm": true,
+        "bf16": true,
+        "sme": true,
+        "sme2": true
+      },
+      "page_size": 4096,
+      "sve": {
+        "status": "ok",
+        "errno": 0,
+        "vector_length_bytes": 16
+      },
+      "sme": {
+        "status": "ok",
+        "errno": 0,
+        "vector_length_bytes": 64
+      },
+      "note": "Feature availability and current API worker-thread vector lengths only; no SIMD instructions are exercised."
+    },
+    "permissions": {
+      "status": "ok",
+      "scope": "effective API app UID grants; not a guarantee an operation will succeed",
+      "entries": {
+        "android.permission.POST_NOTIFICATIONS": {
+          "status": "granted",
+          "declared_by_api_app": false
+        },
+        "android.permission.ACCESS_LOCAL_NETWORK": {
+          "status": "granted",
+          "declared_by_api_app": false
+        },
+        "android.permission.CAMERA": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.RECORD_AUDIO": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.ACCESS_FINE_LOCATION": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.BLUETOOTH_SCAN": {
+          "status": "not_requested",
+          "declared_by_api_app": false
+        },
+        "android.permission.BLUETOOTH_CONNECT": {
+          "status": "not_requested",
+          "declared_by_api_app": false
+        },
+        "android.permission.MANAGE_VIRTUAL_MACHINE": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.USE_CUSTOM_VIRTUAL_MACHINE": {
+          "status": "denied",
+          "declared_by_api_app": true
+        }
+      }
+    },
+    "battery": {
+      "status": "ok",
+      "source": "ACTION_BATTERY_CHANGED",
+      "percentage": 84,
+      "temperature_celsius": 33.5,
+      "charging_status": 3,
+      "plugged_bitmask": 0,
+      "note": "Battery temperature, not CPU or GPU temperature"
+    },
+    "thermal": {
+      "status": "ok",
+      "source": "PowerManager",
+      "power_save_mode": false,
+      "throttling": {
+        "status": "ok",
+        "value": 0,
+        "label": "none"
+      },
+      "headroom": {
+        "status": "ok",
+        "value": 0.7180618,
+        "forecast_seconds": 0,
+        "note": "1.0 is the severe-throttling threshold; NaN may mean unsupported or rate-limited"
+      }
+    },
+    "shizuku": {
+      "manager_installed": true,
+      "status": "unavailable",
+      "reason": "binder_not_connected",
+      "authorized": null
+    },
+    "virtualization": {
+      "status": "denied",
+      "schema_version": 1,
+      "timestamp_unix_ms": 1790037131519,
+      "source": "Termux:API app context",
+      "uid": 10445,
+      "feature_advertised": true,
+      "apex_visible": true,
+      "permissions": {
+        "android.permission.MANAGE_VIRTUAL_MACHINE": "denied",
+        "android.permission.USE_CUSTOM_VIRTUAL_MACHINE": "denied"
+      },
+      "manager": {
+        "status": "ok",
+        "capability_bits": 3,
+        "protected_vm": true,
+        "non_protected_vm": true
+      },
+      "custom_image_api": {
+        "status": "unavailable",
+        "reason": "NoSuchMethodException",
+        "note": "Missing and restricted framework APIs are both possible; no bypass was attempted."
+      },
+      "readiness": {
+        "status": "denied",
+        "blockers": [
+          "manage_virtual_machine_permission_denied",
+          "use_custom_virtual_machine_permission_denied",
+          "custom_image_api_unavailable_or_restricted"
+        ],
+        "can_attempt_custom_vm": false,
+        "guest_boot": "not_tested",
+        "arch_compatibility": "not_tested",
+        "backend_running": null
+      },
+      "note": "Preflight only; this command never creates, starts, stops, or enumerates VMs."
+    },
+    "storage": {
+      "status": "ok",
+      "all_files_access": true,
+      "scope": "Termux:API process; content URI grants are not enumerated"
+    },
+    "transport": {
+      "status": "ok",
+      "protocol": "existing Termux:API request/result transport",
+      "authorization": "non-exported receiver and same-UID socket peers",
+      "shared_uid": "com.termux",
+      "signing": "debug builds retain the public upstream test key for compatibility"
+    }
+  },
+  "workloads": {
+    "jpeg": {
+      "samples": [
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 68,
+            "seconds": 0.30284705403028056,
+            "mib_per_second": 505.369321250312
+          },
+          "decode": {
+            "iterations": 53,
+            "seconds": 0.30084465799154714,
+            "mib_per_second": 396.512497584419
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "default",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 46,
+            "seconds": 0.3051143200136721,
+            "mib_per_second": 339.3271079330364
+          },
+          "decode": {
+            "iterations": 38,
+            "seconds": 0.30604075104929507,
+            "mib_per_second": 279.46514645234834
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "disabled",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 46,
+            "seconds": 0.305402364989277,
+            "mib_per_second": 339.00706631014305
+          },
+          "decode": {
+            "iterations": 38,
+            "seconds": 0.3039215329918079,
+            "mib_per_second": 281.4138322824375
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "disabled",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 69,
+            "seconds": 0.3012052309932187,
+            "mib_per_second": 515.5964230325333
+          },
+          "decode": {
+            "iterations": 54,
+            "seconds": 0.3041664809570648,
+            "mib_per_second": 399.58182079624635
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "default",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 69,
+            "seconds": 0.30183620302705094,
+            "mib_per_second": 514.5185969784853
+          },
+          "decode": {
+            "iterations": 54,
+            "seconds": 0.3027458139695227,
+            "mib_per_second": 401.4569010630352
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "default",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 46,
+            "seconds": 0.304686923045665,
+            "mib_per_second": 339.8030961232859
+          },
+          "decode": {
+            "iterations": 38,
+            "seconds": 0.3038594240206294,
+            "mib_per_second": 281.4713533669153
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "disabled",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 46,
+            "seconds": 0.30632882501231506,
+            "mib_per_second": 337.9817743075013
+          },
+          "decode": {
+            "iterations": 38,
+            "seconds": 0.3028740320005454,
+            "mib_per_second": 282.3871123828269
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "disabled",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 69,
+            "seconds": 0.30297309602610767,
+            "mib_per_second": 512.5878889438059
+          },
+          "decode": {
+            "iterations": 54,
+            "seconds": 0.3030155340093188,
+            "mib_per_second": 401.09955644146277
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "default",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 69,
+            "seconds": 0.30346078699221835,
+            "mib_per_second": 511.76411040802407
+          },
+          "decode": {
+            "iterations": 53,
+            "seconds": 0.30119413702050224,
+            "mib_per_second": 396.05241956299676
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "default",
+          "pair": 4
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libturbojpeg.so.0.5.0",
+            "sha256": "8b9c2eecf3efdd67437a6f07a62af56a0fa6e6f8a265bc7812f25cbe1dea618d"
+          },
+          "width": 1023,
+          "height": 769,
+          "encode": {
+            "iterations": 46,
+            "seconds": 0.3059483809629455,
+            "mib_per_second": 338.40205159227054
+          },
+          "decode": {
+            "iterations": 38,
+            "seconds": 0.30631072499090806,
+            "mib_per_second": 279.2188334734821
+          },
+          "compressed_bytes": 614403,
+          "input_sha256": "c9a76a5ff9b655a9185212b6f0e9e8081e50c6ce5992dea40b4468874cb81c96",
+          "encoded_sha256": "2ca2b2cab7abc36d3de07975dbec5018ee0eeb239bf8157c9aecbc7c07c1fe6b",
+          "decoded_sha256": "30608caaf50bec5bebbc783444b0bb7fa40a0f15d45e8910f463aae3bb0174f7",
+          "mode": "disabled",
+          "pair": 4
+        }
+      ],
+      "median_mib_per_second": {
+        "default": {
+          "encode": 512.5878889438059,
+          "decode": 399.58182079624635
+        },
+        "disabled": {
+          "encode": 339.00706631014305,
+          "decode": 281.4138322824375
+        }
+      },
+      "status": "PASS"
+    },
+    "records": {
+      "samples": [
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 34,
+            "seconds": 0.3070790839847177,
+            "mib_per_second": 110.72066374176127
+          },
+          "decode": {
+            "iterations": 294,
+            "seconds": 0.300512287998572,
+            "mib_per_second": 978.3293786688585
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 108591,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 39,
+            "seconds": 0.3037547100102529,
+            "mib_per_second": 128.39307083891342
+          },
+          "decode": {
+            "iterations": 1064,
+            "seconds": 0.30003385100280866,
+            "mib_per_second": 3546.2665177404924
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 102036,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 32,
+            "seconds": 0.30978025699732825,
+            "mib_per_second": 103.29902980316783
+          },
+          "decode": {
+            "iterations": 1033,
+            "seconds": 0.3001788139808923,
+            "mib_per_second": 3441.2821687867518
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 102036,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 34,
+            "seconds": 0.30828416300937533,
+            "mib_per_second": 110.28785802067301
+          },
+          "decode": {
+            "iterations": 295,
+            "seconds": 0.3007970539620146,
+            "mib_per_second": 980.7276903624638
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 108591,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 34,
+            "seconds": 0.30760655796620995,
+            "mib_per_second": 110.53080345489526
+          },
+          "decode": {
+            "iterations": 294,
+            "seconds": 0.3003490859991871,
+            "mib_per_second": 978.8609777916745
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 108591,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 38,
+            "seconds": 0.3024843439925462,
+            "mib_per_second": 125.62633655160809
+          },
+          "decode": {
+            "iterations": 1063,
+            "seconds": 0.30016551696462557,
+            "mib_per_second": 3541.379472063989
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 102036,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 38,
+            "seconds": 0.304396427993197,
+            "mib_per_second": 124.83720735661612
+          },
+          "decode": {
+            "iterations": 1067,
+            "seconds": 0.3001359350164421,
+            "mib_per_second": 3555.0558114327346
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 102036,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 34,
+            "seconds": 0.3081520540290512,
+            "mib_per_second": 110.33513992671497
+          },
+          "decode": {
+            "iterations": 293,
+            "seconds": 0.30085679300827906,
+            "mib_per_second": 973.8852730240236
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 108591,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 33,
+            "seconds": 0.30467364098876715,
+            "mib_per_second": 108.31261901391942
+          },
+          "decode": {
+            "iterations": 295,
+            "seconds": 0.300955515995156,
+            "mib_per_second": 980.2113080550686
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 108591,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 4
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 36,
+            "seconds": 0.30482645495794713,
+            "mib_per_second": 118.0999857934458
+          },
+          "decode": {
+            "iterations": 1062,
+            "seconds": 0.30001239298144355,
+            "mib_per_second": 3539.8537688597653
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 102036,
+          "input_sha256": "8fb840c4e66e014f9605ff2f9fdb38c29c956e23c608f02a0e0768a514e3b7d9",
+          "decode_input_sha256": "1b503f4b08296365c208d7fd0196690adbe7759922bb5e93210da47752c1eefa",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 4
+        }
+      ],
+      "median_mib_per_second": {
+        "zlib": {
+          "encode": 110.33513992671497,
+          "decode": 978.8609777916745
+        },
+        "libdeflate": {
+          "encode": 124.83720735661612,
+          "decode": 3541.379472063989
+        }
+      },
+      "status": "PASS"
+    },
+    "random": {
+      "samples": [
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 16,
+            "seconds": 0.3184399610036053,
+            "mib_per_second": 50.24495025553295
+          },
+          "decode": {
+            "iterations": 818,
+            "seconds": 0.30033431900665164,
+            "mib_per_second": 2723.6314607851505
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048902,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 32,
+            "seconds": 0.3087433819891885,
+            "mib_per_second": 103.6459463319624
+          },
+          "decode": {
+            "iterations": 4725,
+            "seconds": 0.30006791203049943,
+            "mib_per_second": 15746.435425323794
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048672,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 0
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 32,
+            "seconds": 0.30548197601456195,
+            "mib_per_second": 104.75249773320374
+          },
+          "decode": {
+            "iterations": 4709,
+            "seconds": 0.30000895500415936,
+            "mib_per_second": 15696.198134934719
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048672,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 16,
+            "seconds": 0.31842478801263496,
+            "mib_per_second": 50.24734443527407
+          },
+          "decode": {
+            "iterations": 805,
+            "seconds": 0.3000071059796028,
+            "mib_per_second": 2683.2697757990145
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048902,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 1
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 15,
+            "seconds": 0.30108679295517504,
+            "mib_per_second": 49.81952164947055
+          },
+          "decode": {
+            "iterations": 810,
+            "seconds": 0.30028705403674394,
+            "mib_per_second": 2697.4189833068403
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048902,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 31,
+            "seconds": 0.3058145540417172,
+            "mib_per_second": 101.36862222643329
+          },
+          "decode": {
+            "iterations": 4671,
+            "seconds": 0.30004960601218045,
+            "mib_per_second": 15567.42587360832
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048672,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 2
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 32,
+            "seconds": 0.305257937987335,
+            "mib_per_second": 104.82937875747447
+          },
+          "decode": {
+            "iterations": 4662,
+            "seconds": 0.30000442400341853,
+            "mib_per_second": 15539.77084000227
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048672,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 16,
+            "seconds": 0.31954082899028435,
+            "mib_per_second": 50.071848566451834
+          },
+          "decode": {
+            "iterations": 812,
+            "seconds": 0.30001736601116136,
+            "mib_per_second": 2706.50999572402
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048902,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 3
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libz.so.1.3.2",
+            "sha256": "c47748ed4b6ca6a2ecd664bab04795f3493956ab1f5cddc4ba0efa737ef3b711"
+          },
+          "encode": {
+            "iterations": 16,
+            "seconds": 0.31758463103324175,
+            "mib_per_second": 50.38027170252225
+          },
+          "decode": {
+            "iterations": 819,
+            "seconds": 0.3003118180204183,
+            "mib_per_second": 2727.1654022763632
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048902,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "zlib",
+          "pair": 4
+        },
+        {
+          "library": {
+            "path": "/data/data/com.termux/files/usr/lib/libdeflate.so",
+            "sha256": "e8a07a158a5744dc233f9d02444529a2a6f6ad816475739770fff44e68370953"
+          },
+          "encode": {
+            "iterations": 30,
+            "seconds": 0.30475661205127835,
+            "mib_per_second": 98.43920956488452
+          },
+          "decode": {
+            "iterations": 4337,
+            "seconds": 0.30002989200875163,
+            "mib_per_second": 14455.226347491713
+          },
+          "input_bytes": 1048576,
+          "compressed_bytes": 1048672,
+          "input_sha256": "78fa312bab68bc7f2a0098ff141b00b6a19fc74dd5d578dccf16f290671e306e",
+          "decode_input_sha256": "9b6ed8f13dfacad0b3249c8f10189fc1e189480c8e44f2bd3e497816445d610e",
+          "roundtrip": true,
+          "mode": "libdeflate",
+          "pair": 4
+        }
+      ],
+      "median_mib_per_second": {
+        "zlib": {
+          "encode": 50.24495025553295,
+          "decode": 2706.50999572402
+        },
+        "libdeflate": {
+          "encode": 103.6459463319624,
+          "decode": 15567.42587360832
+        }
+      },
+      "status": "PASS"
+    }
+  },
+  "limitations": "Synthetic warm-buffer workloads, uncontrolled clocks/thermals. JPEG uses child-only JSIMD_FORCENONE. Compression compares libraries, not SIMD on/off; level 6 is not an equivalent compression ratio. Output buffers are reused. No whole-app or battery-efficiency claim.",
+  "after": {
+    "schema_version": 1,
+    "timestamp_unix_ms": 1790037161486,
+    "device": {
+      "status": "ok",
+      "manufacturer": "Google",
+      "model": "Pixel 11 Pro XL",
+      "android_release": "17",
+      "sdk": 37,
+      "supported_abis": [
+        "arm64-v8a"
+      ],
+      "api_app_version": "0.53.0+60018b9",
+      "api_app_target_sdk": 37,
+      "uid": 10445
+    },
+    "cpu": {
+      "status": "ok",
+      "source": "getauxval in the Termux:API process",
+      "architecture": "aarch64",
+      "hwcap": "0xffffffff",
+      "hwcap2": "0x51a8bc9af3ff",
+      "hwcap_errno": 0,
+      "hwcap2_errno": 0,
+      "features": {
+        "asimd": true,
+        "aes": true,
+        "sha2": true,
+        "crc32": true,
+        "asimdhp": true,
+        "sha3": true,
+        "asimddp": true,
+        "sha512": true,
+        "sve": true,
+        "asimdfhm": true,
+        "sve2": true,
+        "svei8mm": true,
+        "svebf16": true,
+        "i8mm": true,
+        "bf16": true,
+        "sme": true,
+        "sme2": true
+      },
+      "page_size": 4096,
+      "sve": {
+        "status": "ok",
+        "errno": 0,
+        "vector_length_bytes": 16
+      },
+      "sme": {
+        "status": "ok",
+        "errno": 0,
+        "vector_length_bytes": 64
+      },
+      "note": "Feature availability and current API worker-thread vector lengths only; no SIMD instructions are exercised."
+    },
+    "permissions": {
+      "status": "ok",
+      "scope": "effective API app UID grants; not a guarantee an operation will succeed",
+      "entries": {
+        "android.permission.POST_NOTIFICATIONS": {
+          "status": "granted",
+          "declared_by_api_app": false
+        },
+        "android.permission.ACCESS_LOCAL_NETWORK": {
+          "status": "granted",
+          "declared_by_api_app": false
+        },
+        "android.permission.CAMERA": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.RECORD_AUDIO": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.ACCESS_FINE_LOCATION": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.BLUETOOTH_SCAN": {
+          "status": "not_requested",
+          "declared_by_api_app": false
+        },
+        "android.permission.BLUETOOTH_CONNECT": {
+          "status": "not_requested",
+          "declared_by_api_app": false
+        },
+        "android.permission.MANAGE_VIRTUAL_MACHINE": {
+          "status": "denied",
+          "declared_by_api_app": true
+        },
+        "android.permission.USE_CUSTOM_VIRTUAL_MACHINE": {
+          "status": "denied",
+          "declared_by_api_app": true
+        }
+      }
+    },
+    "battery": {
+      "status": "ok",
+      "source": "ACTION_BATTERY_CHANGED",
+      "percentage": 83,
+      "temperature_celsius": 33.9,
+      "charging_status": 3,
+      "plugged_bitmask": 0,
+      "note": "Battery temperature, not CPU or GPU temperature"
+    },
+    "thermal": {
+      "status": "ok",
+      "source": "PowerManager",
+      "power_save_mode": false,
+      "throttling": {
+        "status": "ok",
+        "value": 0,
+        "label": "none"
+      },
+      "headroom": {
+        "status": "ok",
+        "value": 0.70648015,
+        "forecast_seconds": 0,
+        "note": "1.0 is the severe-throttling threshold; NaN may mean unsupported or rate-limited"
+      }
+    },
+    "shizuku": {
+      "manager_installed": true,
+      "status": "unavailable",
+      "reason": "binder_not_connected",
+      "authorized": null
+    },
+    "virtualization": {
+      "status": "denied",
+      "schema_version": 1,
+      "timestamp_unix_ms": 1790037161524,
+      "source": "Termux:API app context",
+      "uid": 10445,
+      "feature_advertised": true,
+      "apex_visible": true,
+      "permissions": {
+        "android.permission.MANAGE_VIRTUAL_MACHINE": "denied",
+        "android.permission.USE_CUSTOM_VIRTUAL_MACHINE": "denied"
+      },
+      "manager": {
+        "status": "ok",
+        "capability_bits": 3,
+        "protected_vm": true,
+        "non_protected_vm": true
+      },
+      "custom_image_api": {
+        "status": "unavailable",
+        "reason": "NoSuchMethodException",
+        "note": "Missing and restricted framework APIs are both possible; no bypass was attempted."
+      },
+      "readiness": {
+        "status": "denied",
+        "blockers": [
+          "manage_virtual_machine_permission_denied",
+          "use_custom_virtual_machine_permission_denied",
+          "custom_image_api_unavailable_or_restricted"
+        ],
+        "can_attempt_custom_vm": false,
+        "guest_boot": "not_tested",
+        "arch_compatibility": "not_tested",
+        "backend_running": null
+      },
+      "note": "Preflight only; this command never creates, starts, stops, or enumerates VMs."
+    },
+    "storage": {
+      "status": "ok",
+      "all_files_access": true,
+      "scope": "Termux:API process; content URI grants are not enumerated"
+    },
+    "transport": {
+      "status": "ok",
+      "protocol": "existing Termux:API request/result transport",
+      "authorization": "non-exported receiver and same-UID socket peers",
+      "shared_uid": "com.termux",
+      "signing": "debug builds retain the public upstream test key for compatibility"
+    }
+  },
+  "finished_at": 1790037161.5398066
+}

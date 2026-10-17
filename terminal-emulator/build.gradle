@@ -1,15 +1,18 @@
-apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
 
 android {
-    namespace "com.termux.emulator"
+    namespace = "com.termux.emulator"
 
-    compileSdkVersion project.properties.compileSdkVersion.toInteger()
+    compileSdk = project.properties.compileSdkVersion.toInteger()
+    compileSdkMinor = project.properties.compileSdkMinorVersion.toInteger()
     ndkVersion = System.getenv("JITPACK_NDK_VERSION") ?: project.properties.ndkVersion
 
     defaultConfig {
-        minSdkVersion project.properties.minSdkVersion.toInteger()
-        targetSdkVersion project.properties.targetSdkVersion.toInteger()
+        minSdk = project.properties.minSdkVersion.toInteger()
+        targetSdk = project.properties.targetSdkVersion.toInteger()
 
         externalNativeBuild {
             ndkBuild {
@@ -18,26 +21,30 @@ android {
         }
 
         ndk {
-            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            if (rootProject.ext.termuxArm64Only) {
+                abiFilters 'arm64-v8a'
+            } else {
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            }
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     externalNativeBuild {
         ndkBuild {
-            path "src/main/jni/Android.mk"
+            path = file("src/main/jni/Android.mk")
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     testOptions {
@@ -53,7 +60,7 @@ android {
     }
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     testLogging {
         events "started", "passed", "skipped", "failed"
     }
@@ -64,7 +71,7 @@ dependencies {
     testImplementation "junit:junit:4.13.2"
 }
 
-task sourceJar(type: Jar) {
+def sourceJar = tasks.register('sourceJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     archiveClassifier = "sources"
 }

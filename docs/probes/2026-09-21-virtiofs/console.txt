@@ -1,0 +1,132 @@
+[    0.715529] loop: module loaded
+[    0.735606] megasas: 07.734.00.00-rc1
+[    0.735778] mpt3sas version 54.100.00.00 loaded
+[    0.738136] tun: Universal TUN/TAP device driver, 1.6
+[    0.739370] CAN device driver interface
+[    0.740283] thunder_xcv, ver 1.0
+[    0.740373] thunder_bgx, ver 1.0
+[    0.740467] nicpf, ver 1.0
+[    0.740936] e1000: Intel(R) PRO/1000 Network Driver
+[    0.741011] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    0.741098] e1000e: Intel(R) PRO/1000 Network Driver
+[    0.741152] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    0.741238] igb: Intel(R) Gigabit Ethernet Network Driver
+[    0.741292] igb: Copyright (c) 2007-2014 Intel Corporation.
+[    0.741357] igbvf: Intel(R) Gigabit Virtual Function Network Driver
+[    0.741422] igbvf: Copyright (c) 2009 - 2012 Intel Corporation.
+[    0.741554] sky2: driver version 1.30
+[    0.742188] pegasus: Pegasus/Pegasus II USB Ethernet driver
+[    0.742261] usbcore: registered new interface driver pegasus
+[    0.742325] usbcore: registered new interface driver rtl8150
+[    0.742435] usbcore: registered new device driver r8152-cfgselector
+[    0.742505] usbcore: registered new interface driver r8152
+[    0.742556] usbcore: registered new interface driver lan78xx
+[    0.742633] usbcore: registered new interface driver asix
+[    0.742685] usbcore: registered new interface driver ax88179_178a
+[    0.744800] usbcore: registered new interface driver cdc_ether
+[    0.744981] usbcore: registered new interface driver dm9601
+[    0.745274] usbcore: registered new interface driver CoreChips
+[    0.745365] usbcore: registered new interface driver smsc75xx
+[    0.745405] usbcore: registered new interface driver smsc95xx
+[    0.745437] usbcore: registered new interface driver net1080
+[    0.745473] usbcore: registered new interface driver plusb
+[    0.745501] usbcore: registered new interface driver cdc_subset
+[    0.745533] usbcore: registered new interface driver zaurus
+[    0.745561] usbcore: registered new interface driver MOSCHIP usb-ethernet driver
+[    0.745658] usbcore: registered new interface driver cdc_ncm
+[    0.745703] usbcore: registered new interface driver r8153_ecm
+[    0.746815] VFIO - User Level meta-driver version: 0.3
+[    0.747405] usbcore: registered new interface driver cdc_acm
+[    0.747494] cdc_acm: USB Abstract Control Model driver for USB modems and ISDN adapters
+[    0.747579] usbcore: registered new interface driver usb-storage
+[    0.747726] usbcore: registered new interface driver cp210x
+[    0.747803] usbserial: USB Serial support registered for cp210x
+[    0.747924] usbcore: registered new interface driver ftdi_sio
+[    0.748013] usbserial: USB Serial support registered for FTDI USB Serial Device
+[    0.748104] usbcore: registered new interface driver option
+[    0.748195] usbserial: USB Serial support registered for GSM modem (1-port)
+[    0.748329] usbcore: registered new device driver onboard-usb-dev
+[    0.748635] UDC core: g_mass_storage: couldn't find an available UDC
+[    0.749374] i2c_dev: i2c /dev entries driver
+[    0.750707] usbcore: registered new interface driver uvcvideo
+[    0.751830] device-mapper: ioctl: 4.50.0-ioctl (2025-04-28) initialised: dm-devel@lists.linux.dev
+[    0.753653] sdhci: Secure Digital Host Controller Interface driver
+[    0.755292] sdhci: Copyright(c) Pierre Ossman
+[    0.755518] Synopsys Designware Multimedia Card Interface Driver
+[    0.755697] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.756694] usbcore: registered new interface driver usbhid
+[    0.756768] usbhid: USB HID core driver
+[    0.757465] SPI driver st-magn-spi has no spi_device_id for st,lis3mdl-magn
+[    0.757542] SPI driver st-magn-spi has no spi_device_id for st,lsm303agr-magn
+[    0.757606] SPI driver st-magn-spi has no spi_device_id for st,lsm9ds1-magn
+[    0.757659] SPI driver st-magn-spi has no spi_device_id for st,lsm303c-magn
+[    0.758027]  cs_system_cfg: CoreSight Configuration manager initialised
+[    0.758404] gnss: GNSS driver registered with major 494
+[    0.758733] GACT probability NOT on
+[    0.758803] Mirror/redirect action on
+[    0.759389] IPVS: Registered protocols ()
+[    0.759478] IPVS: Connection hash table configured (size=4096, memory=32Kbytes)
+[    0.759647] IPVS: ipvs loaded.
+[    0.759772] NET: Registered PF_INET6 protocol family
+[    0.760219] Segment Routing with IPv6
+[    0.760282] In-situ OAM (IOAM) with IPv6
+[    0.761967] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    0.762210] NET: Registered PF_PACKET protocol family
+[    0.762313] Bridge firewalling registered
+[    0.762385] can: controller area network core
+[    0.762949] NET: Registered PF_CAN protocol family
+[    0.763016] can: raw protocol
+[    0.763079] can: broadcast manager protocol
+[    0.763110] can: netlink gateway - max_hops=1
+[    0.763198] 8021q: 802.1Q VLAN Support v1.8
+[    0.763283] 9pnet: Installing 9P2000 support
+[    0.763324] Key type dns_resolver registered
+[    0.763394] NET: Registered PF_VSOCK protocol family
+[    0.776062] registered taskstats version 1
+[    0.776888] Loading compiled-in X.509 certificates
+[    0.780468] Demotion targets for Node 0: null
+[    0.783028] Btrfs loaded, zoned=no, fsverity=no
+[    0.783584] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    0.785521] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[    0.785720] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+[    0.787092] faux_driver regulatory: Direct firmware load for regulatory.db failed with error -2
+[    0.787735] cfg80211: failed to load regulatory.db
+[    0.788560] clk: Disabling unused clocks
+[    0.788964] PM: genpd: Disabling unused power domains
+[    0.789139] check access for rdinit=/init failed: -2, ignoring
+[    0.789249] md: Waiting for all devices to be available before autodetect
+[    0.789357] md: If you don't use raid, use raid=noautodetect
+[    0.789465] md: Autodetecting RAID arrays.
+[    0.789552] md: autorun ...
+[    0.789574] md: ... autorun DONE.
+[    0.789727] /dev/root: Can't open blockdev
+[    0.789778] VFS: Cannot open root device "/dev/does-not-exist" or unknown-block(0,0): error -6
+[    0.790114] Please append a correct "root=" boot option; here are the available partitions:
+[    0.790240] List of all bdev filesystems:
+[    0.790281]  ext3
+[    0.790282]  ext2
+[    0.790321]  ext4
+[    0.790341]  squashfs
+[    0.790362]  vfat
+[    0.790417]  fuseblk
+[    0.790449]  btrfs
+[    0.790469] 
+[    0.790511] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+[    0.790959] CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Not tainted 6.18.52-termux-avf #1 PREEMPT 
+[    0.791037] Hardware name: linux,dummy-virt (DT)
+[    0.791080] Call trace:
+[    0.791122]  show_stack+0x18/0x24 (C)
+[    0.791189]  dump_stack_lvl+0x34/0x8c
+[    0.791251]  dump_stack+0x18/0x24
+[    0.791282]  vpanic+0x324/0x368
+[    0.791692]  nmi_panic+0x0/0x64
+[    0.791725]  mount_root_generic+0x288/0x368
+[    0.791790]  mount_root+0x174/0x338
+[    0.791824]  prepare_namespace+0x70/0x2ac
+[    0.791879]  kernel_init_freeable+0x2a0/0x2e0
+[    0.791945]  kernel_init+0x20/0x1d4
+[    0.791997]  ret_from_fork+0x10/0x20
+[    0.792075] Kernel Offset: 0x3bcf77e00000 from 0xffff800080000000
+[    0.792137] PHYS_OFFSET: 0xfff1000080000000
+[    0.792168] CPU features: 0x000000,0001e000,73ec22c1,357e7667
+[    0.792221] Memory Limit: none

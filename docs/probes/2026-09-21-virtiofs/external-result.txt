@@ -1,0 +1,14 @@
+PROBE UID=2000
+RAW_SOCKET=fs.sock
+DISKS=0 MEMORY_MIB=256 SHARE=/storage/emulated/0/Download/aether-vufs-probe-20260921
+CREATED CID=2099
+START_RETURNED
+[2026-09-22T02:29:12.664188159+00:00 DEBUG crosvm::crosvm::sys::linux] creating hypervisor: Kvm { device: Some("/dev/kvm") }
+[2026-09-22T02:29:13.762720463+00:00 INFO  crosvm::crosvm::sys::linux::vcpu] system reset event
+[2026-09-22T02:29:13.762814811+00:00 INFO  crosvm::crosvm::sys::linux] vcpu requested reset
+[2026-09-22T02:29:13.762822233+00:00 ERROR crosvm::crosvm::sys::linux::vcpu] failed to send VcpuControl: sending on a closed channel
+[2026-09-22T02:29:13.899711191+00:00 INFO  crosvm] exiting with reset
+STATE=6
+STOP: java.lang.reflect.InvocationTargetException
+PROBE_DONE
+OWNER_RELEASED

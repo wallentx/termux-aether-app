@@ -1,0 +1,28 @@
+{
+  "columns": 83,
+  "rows": 49,
+  "image_width": 960,
+  "image_height": 600,
+  "fps": 60,
+  "seconds": 10.0,
+  "results": [
+    {
+      "phase": "text_scroll",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000211841019336
+    },
+    {
+      "phase": "image_redraw",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000252579979133
+    },
+    {
+      "phase": "image_replace",
+      "updates": 600,
+      "late_updates": 0,
+      "elapsed_seconds": 10.000215106003452
+    }
+  ]
+}

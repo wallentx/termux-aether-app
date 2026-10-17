@@ -54,6 +54,9 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         this.mActivity = activity;
     }
 
+    /** Used by delayed service unbind cleanup to avoid detaching a replacement activity. */
+    public boolean isActivityDestroyed() { return mActivity.isDestroyed(); }
+
     /**
      * Should be called when mActivity.onCreate() is called
      */
@@ -364,6 +367,10 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
     public void addNewSession(boolean isFailSafe, String sessionName) {
         TermuxService service = mActivity.getTermuxService();
         if (service == null) return;
+
+        if (!isFailSafe && com.termux.app.session.SessionManager.required(mActivity)
+            && !com.termux.app.session.SessionManager.get(mActivity).ensureReady(mActivity,
+                () -> addNewSession(false, sessionName), () -> addNewSession(true, sessionName))) return;
 
         if (service.getTermuxSessionsSize() >= MAX_SESSIONS) {
             new AlertDialog.Builder(mActivity).setTitle(R.string.title_max_terminals_reached).setMessage(R.string.msg_max_terminals_reached)

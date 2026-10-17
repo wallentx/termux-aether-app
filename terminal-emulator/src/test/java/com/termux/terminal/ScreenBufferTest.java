@@ -46,6 +46,40 @@ public class ScreenBufferTest extends TerminalTestCase {
 		assertEquals("ABC\nFG", mTerminal.getScreen().getSelectedText(0, 0, 1, 1, true, true));
 	}
 
+	public void testGetSelectedTextAsSingleLine() {
+		withTerminalSized(5, 3).enterString("ABCDEF");
+		assertEquals("ABCDEF", mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, 0, 1));
+
+		withTerminalSized(5, 3).enterString("ABCDE\r\nFG");
+		assertEquals("ABCDE FG", mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, 1, 1));
+
+		withTerminalSized(5, 3).enterString("ABC\r\nFG");
+		assertEquals("ABC FG", mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, 1, 1));
+		assertEquals("ABC\nFG", mTerminal.getSelectedText(0, 0, 1, 1));
+
+		String first = "  Your /data/data/com.termux/files/home/.codex/AGENTS.md requires you";
+		String second = "  to name dev in the current turn before I push it.";
+		withTerminalSized(first.length(), 3).enterString(first + "\r\n" + second);
+		assertEquals("  Your /data/data/com.termux/files/home/.codex/AGENTS.md requires you to name dev in the current turn before I push it.",
+			mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, second.length() - 1, 1));
+
+		String[] llmLines = {
+			"  It replaces the row break and the second line’s indentation with one",
+			"  space. Ordinary Copy keeps the newline. Your example exposed a flaw",
+			"  in my first version, so I corrected the unpushed commit (ef4a152d)",
+			"  and added it as a regression test. No local build was run."
+		};
+		withTerminalSized(72, 5).enterString(String.join("\r\n", llmLines));
+		assertEquals("  It replaces the row break and the second line’s indentation with one " +
+			"space. Ordinary Copy keeps the newline. Your example exposed a flaw " +
+			"in my first version, so I corrected the unpushed commit (ef4a152d) " +
+			"and added it as a regression test. No local build was run.",
+			mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, llmLines[3].length() - 1, 3));
+
+		withTerminalSized(20, 4).enterString("  alpha\r\n  beta\r\n    detail");
+		assertEquals("  alpha beta   detail", mTerminal.getScreen().getSelectedTextAsSingleLine(0, 0, 9, 2));
+	}
+
 	public void testGetWordAtLocation() {
 		withTerminalSized(5, 3).enterString("ABCDEFGHIJ\r\nKLMNO");
 		assertEquals("ABCDEFGHIJKLMNO", mTerminal.getScreen().getWordAtLocation(0, 0));

@@ -43,6 +43,7 @@ import com.termux.shared.view.ViewUtils;
 import com.termux.terminal.KeyHandler;
 import com.termux.terminal.TerminalEmulator;
 import com.termux.terminal.TerminalSession;
+import com.termux.view.TerminalView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     /** Keeping track of the special keys acting as Ctrl and Fn for the soft keyboard and other hardware keys. */
     boolean mVirtualControlKeyDown, mVirtualFnKeyDown;
+    private int mHardwareControlKeys;
 
     private Runnable mShowSoftKeyboardRunnable;
 
@@ -184,15 +186,17 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void onSingleTapUp(MotionEvent e) {
-        TerminalEmulator term = mActivity.getCurrentSession().getEmulator();
+        TerminalSession session = mActivity.getCurrentSession();
+        if (session == null) return;
+        TerminalEmulator term = session.getEmulator();
+        if (term == null) return;
 
-        if (mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
-            int[] columnAndRow = mActivity.getTerminalView().getColumnAndRow(e, true);
-            String wordAtTap = term.getScreen().getWordAtLocation(columnAndRow[0], columnAndRow[1]);
-            LinkedHashSet<CharSequence> urlSet = TermuxUrlUtils.extractUrls(wordAtTap);
-
-            if (!urlSet.isEmpty()) {
-                String url = (String) urlSet.iterator().next();
+        boolean ctrlPressed = isControlModifierActive(e);
+        if (ctrlPressed || mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
+            String url = getUrlAtTap(e);
+            if (url != null) {
+                if (ctrlPressed && mActivity.getExtraKeysView() != null)
+                    mActivity.getExtraKeysView().readSpecialButton(SpecialButton.CTRL, true);
                 ShareUtils.openUrl(mActivity, url);
                 return;
             }
@@ -204,6 +208,37 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             else
                 Logger.logVerbose(LOG_TAG, "Not showing soft keyboard onSingleTapUp since its disabled");
         }
+    }
+
+    @Override
+    public boolean shouldSuppressMouseTap(MotionEvent event) {
+        return isControlModifierActive(event) && getUrlAtTap(event) != null;
+    }
+
+    @Override
+    public boolean[][] getLinkUnderlineMask(TerminalEmulator emulator, int topRow) {
+        return isControlActive() ? TerminalUrlHighlights.find(emulator.getScreen(), topRow, emulator.mRows, emulator.mColumns) : null;
+    }
+
+    private boolean isControlModifierActive(MotionEvent event) {
+        return (event.getMetaState() & KeyEvent.META_CTRL_ON) != 0 || isControlActive();
+    }
+
+    private boolean isControlActive() {
+        return mVirtualControlKeyDown || mHardwareControlKeys != 0 ||
+            (mActivity.getExtraKeysView() != null &&
+                Boolean.TRUE.equals(mActivity.getExtraKeysView().readSpecialButton(SpecialButton.CTRL, false)));
+    }
+
+    private String getUrlAtTap(MotionEvent event) {
+        TerminalSession session = mActivity.getCurrentSession();
+        TerminalView terminalView = mActivity.getTerminalView();
+        if (session == null || terminalView == null || session.getEmulator() == null) return null;
+
+        int[] columnAndRow = terminalView.getColumnAndRow(event, true);
+        TerminalEmulator emulator = session.getEmulator();
+        return TerminalUrlHighlights.findUrlAt(emulator.getScreen(), terminalView.getTopRow(),
+            emulator.mRows, emulator.mColumns, columnAndRow[1], columnAndRow[0]);
     }
 
     @Override
@@ -239,6 +274,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     @SuppressLint("RtlHardcoded")
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession currentSession) {
+        updateHardwareControlKey(keyCode, true);
         if (handleVirtualKeys(keyCode, e, true)) return true;
 
         if (keyCode == KeyEvent.KEYCODE_ENTER && !currentSession.isRunning()) {
@@ -290,6 +326,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent e) {
+        updateHardwareControlKey(keyCode, false);
         // If emulator is not set, like if bootstrap installation failed and user dismissed the error
         // dialog, then just exit the activity, otherwise they will be stuck in a broken state.
         if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.getTerminalView().mEmulator == null) {
@@ -309,13 +346,26 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             // Do not steal dedicated buttons from a full external keyboard.
             return false;
         } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            mVirtualControlKeyDown = down;
+            if (mVirtualControlKeyDown != down) {
+                mVirtualControlKeyDown = down;
+                mActivity.getTerminalView().postInvalidateOnAnimation();
+            }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             mVirtualFnKeyDown = down;
             return true;
         }
         return false;
+    }
+
+    private void updateHardwareControlKey(int keyCode, boolean down) {
+        int bit = keyCode == KeyEvent.KEYCODE_CTRL_LEFT ? 1 : keyCode == KeyEvent.KEYCODE_CTRL_RIGHT ? 2 : 0;
+        if (bit == 0) return;
+        int updated = down ? mHardwareControlKeys | bit : mHardwareControlKeys & ~bit;
+        if (updated != mHardwareControlKeys) {
+            mHardwareControlKeys = updated;
+            mActivity.getTerminalView().postInvalidateOnAnimation();
+        }
     }
 
 

@@ -77,6 +77,8 @@ public final class TerminalView extends View {
     private int mMouseScrollStartX = -1, mMouseScrollStartY = -1;
     /** Keep track of the time when a touch event leading to sending mouse scroll events started. */
     private long mMouseStartDownTime = -1;
+    /** A URL tap handled by the client must not also click a mouse-aware terminal app. */
+    private boolean mSuppressMouseTap;
 
     final Scroller mScroller;
 
@@ -142,6 +144,7 @@ public final class TerminalView extends View {
             @Override
             public boolean onUp(MotionEvent event) {
                 mScrollRemainder = 0.0f;
+                if (mSuppressMouseTap || mClient.shouldSuppressMouseTap(event)) return true;
                 if (mEmulator != null && mEmulator.isMouseTrackingActive() && !event.isFromSource(InputDevice.SOURCE_MOUSE) && !isSelectingText() && !scrolledWithFinger) {
                     // Quick event processing when mouse tracking is active - do not wait for check of double tapping
                     // for zooming.
@@ -607,14 +610,20 @@ public final class TerminalView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (mEmulator == null) return true;
         final int action = event.getAction();
+        if (action == MotionEvent.ACTION_DOWN)
+            mSuppressMouseTap = mClient.shouldSuppressMouseTap(event);
 
         if (isSelectingText()) {
             updateFloatingToolbarVisibility(event);
             mGestureRecognizer.onTouchEvent(event);
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
+                mSuppressMouseTap = false;
             return true;
         } else if (event.isFromSource(InputDevice.SOURCE_MOUSE)) {
             if (event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)) {
                 if (action == MotionEvent.ACTION_DOWN) showContextMenu();
+                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
+                    mSuppressMouseTap = false;
                 return true;
             } else if (event.isButtonPressed(MotionEvent.BUTTON_TERTIARY)) {
                 ClipboardManager clipboardManager = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -626,7 +635,7 @@ public final class TerminalView extends View {
                         if (!TextUtils.isEmpty(text)) mEmulator.paste(text.toString());
                     }
                 }
-            } else if (mEmulator.isMouseTrackingActive()) { // BUTTON_PRIMARY.
+            } else if (mEmulator.isMouseTrackingActive() && !mSuppressMouseTap) { // BUTTON_PRIMARY.
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                     case MotionEvent.ACTION_UP:
@@ -640,6 +649,8 @@ public final class TerminalView extends View {
         }
 
         mGestureRecognizer.onTouchEvent(event);
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
+            mSuppressMouseTap = false;
         return true;
     }
 
@@ -1029,7 +1040,8 @@ public final class TerminalView extends View {
                 mTextSelectionCursorController.getSelectors(sel);
             }
 
-            mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
+            boolean[][] linkMask = mClient == null ? null : mClient.getLinkUnderlineMask(mEmulator, mTopRow);
+            mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3], linkMask);
 
             // render the text selection handles
             renderTextSelection();
@@ -1435,10 +1447,14 @@ public final class TerminalView extends View {
         mClient.copyModeChanged(isSelectingText());
 
         invalidate();
+        // Handles and ActionMode are created during a long press. Refresh once their windows
+        // have settled instead of relying on a later selection-handle touch to show the menu.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) showFloatingToolbar();
     }
 
     public void stopTextSelectionMode() {
         if (hideTextSelectionCursors()) {
+            removeCallbacks(mShowFloatingToolbar);
             mClient.copyModeChanged(isSelectingText());
             invalidate();
         }
@@ -1461,6 +1477,7 @@ public final class TerminalView extends View {
 
     @Override
     protected void onDetachedFromWindow() {
+        removeCallbacks(mShowFloatingToolbar);
         super.onDetachedFromWindow();
 
         if (mTextSelectionCursorController != null) {
@@ -1482,8 +1499,11 @@ public final class TerminalView extends View {
         @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void run() {
-            if (getTextSelectionActionMode() != null) {
-                getTextSelectionActionMode().hide(0);  // hide off.
+            ActionMode mode = getTextSelectionActionMode();
+            if (isAttachedToWindow() && isSelectingText() && mode != null) {
+                // hide(0) only clears a hide request; it does not refresh stale content bounds.
+                getTextSelectionCursorController().refreshActionModeContentRect();
+                mode.hide(0);
             }
         }
     };
@@ -1491,6 +1511,7 @@ public final class TerminalView extends View {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void showFloatingToolbar() {
         if (getTextSelectionActionMode() != null) {
+            removeCallbacks(mShowFloatingToolbar);
             int delay = ViewConfiguration.getDoubleTapTimeout();
             postDelayed(mShowFloatingToolbar, delay);
         }

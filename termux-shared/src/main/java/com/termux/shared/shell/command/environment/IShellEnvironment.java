@@ -38,6 +38,13 @@ public interface IShellEnvironment {
     @NonNull
     String[] setupShellCommandArguments(@NonNull String fileToExecute, @Nullable String[] arguments);
 
+    /** Prepare the executable and arguments for the platform, preserving the input for ordinary shells. */
+    @NonNull
+    default String[] setupShellCommandExecution(@NonNull Context context, @NonNull String[] command,
+                                                boolean loginShell, @NonNull HashMap<String, String> environment) {
+        return command;
+    }
+
     /**
      * Setup shell command environment to be used for commands.
      *

@@ -61,8 +61,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('assets', type=Path)
     parser.add_argument('output', type=Path)
-    parser.add_argument('--version', default='1000.0.0')
-    parser.add_argument('--pkgrel', type=int, default=2)
+    parser.add_argument('--version', default='1000.0.1')
+    parser.add_argument('--pkgrel', type=int, default=1)
     args = parser.parse_args()
     if not re.fullmatch(r'\d+\.\d+\.\d+', args.version) or args.pkgrel < 1:
         parser.error('Invalid version or package release')

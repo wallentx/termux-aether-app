@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(prefix='aether-isolated-pacman-') as temporary:
     m=tarfile.TarInfo(path);m.size=len(data);m.mode=0o700;tf.addfile(m,io.BytesIO(data))
   return archive
  prefix='data/data/com.termux/files/usr/'
- fixtures=[fixture('fixture-deps',''.join(f'provides = {p}=9999\n' for p in ['bash','util-linux','termux-am','python','openssh']),{}),
+ fixtures=[fixture('fixture-deps',''.join(f'provides = {p}=9999\n' for p in ['bash','util-linux','termux-am','python','openssh','yq']),{}),
            fixture('termux-api','', {prefix+'bin/termux-battery-status':b'old api'}),
            fixture('termux-aether-exec','provides = termux-exec=1:2.5.0\n',{prefix+'lib/libtermux-exec-ld-preload.so':real.read_bytes()})]
  common=['pacman','--root',str(install),'--dbpath',str(db),'--logfile',str(root/'pacman.log'),'--config',str(conf),'--cachedir',str(cache),'--hookdir',str(hooks),'--noscriptlet','--noprogressbar']

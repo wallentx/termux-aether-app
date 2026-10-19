@@ -78,18 +78,22 @@ credentials, app settings or package-managed glibc installations.
 
 ## Versions and upgrade identity
 
-| Component | Release baseline |
-| --- | --- |
-| Android app and API companion | Version `1000.0.0`, versionCode `1000000000` |
-| Pacman suite | `termux-aether-suite 1:1000.0.0-2` |
-| Native API commands | `termux-aether-api 1:1000.0.0-2`, provided by the suite |
-| Native execution | `termux-aether-exec 1:1000.0.0-1`, provided by the suite |
+The coordinated `1000.0.1` release uses these component versions. Verify all
+release assets before publication.
 
-Packaging revision 2 reuses the unchanged APKs and exec library from v1000.0.0.
-It changes the distribution format, updater and migration handling. It does not
-needlessly bump the Android versionCode or rebuild those APKs. Future changed
-APKs must increment the code. High versions reserve space above ordinary upstream
-versions; no finite number guarantees upstream can never overtake them.
+| Component | `1000.0.1` release input |
+| --- | --- |
+| Android app and API companion | Version `1000.0.1`, versionCode `1000000001` |
+| Pacman suite | `termux-aether-suite 1:1000.0.1-1` |
+| Native API commands | `termux-aether-api 1:1000.0.1-1`, provided by the suite |
+| Native execution | Reuse released `termux-aether-exec 1:1000.0.0-1`, provided by the suite |
+
+The suite records each component package version, so a new API package can use
+the unchanged released Exec package. Packaging revision 2 remains the prior
+`v1000.0.0` distribution revision: it reused the unchanged APKs and Exec library
+while changing the distribution format, updater and migration handling. Future
+changed APKs must increment the code. High versions reserve space above ordinary
+upstream versions; no finite number guarantees upstream can never overtake them.
 
 Android package IDs (`com.termux` and `com.termux.api`), shared UID and signing key
 remain unchanged. Matching signatures support updates in place. If Android reports

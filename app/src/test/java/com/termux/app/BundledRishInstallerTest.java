@@ -13,6 +13,22 @@ import static org.junit.Assert.*;
 public class BundledRishInstallerTest {
     @Rule public TemporaryFolder files = new TemporaryFolder();
 
+    @Test public void selectsPlusForSideBySideAndDropInWithoutChangingStock() {
+        assertEquals("stock", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", "moe.shizuku.manager.ShizukuApplication"));
+        assertEquals("plus", BundledRishInstaller.backendFor("af.shizuku.plus.api", null));
+        assertEquals("plus", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", "af.shizuku.manager.ShizukuApplication"));
+        assertEquals("stock", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", null));
+    }
+
+    @Test public void startupRetainsVerifiedStockChoiceWhenPlusIsAlsoInstalled() {
+        String plus = "af.shizuku.plus.api", stock = "moe.shizuku.privileged.api";
+        assertEquals(stock, BundledRishInstaller.chooseManager(stock, plus, stock));
+        assertEquals(plus, BundledRishInstaller.chooseManager(stock, plus));
+        assertEquals(plus, BundledRishInstaller.chooseManager(null, plus, stock));
+        assertEquals(plus, BundledRishInstaller.chooseManager("untrusted.package", plus, stock));
+        assertNull(BundledRishInstaller.chooseManager(stock));
+    }
+
     @Test
     public void updatesReadOnlyDexWithoutChangingThePreviouslyPublishedInode() throws Exception {
         File directory = files.newFolder();

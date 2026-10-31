@@ -87,6 +87,90 @@ public class SessionManagerTest {
         assertNull(activityShadow.getNextStartedActivity());
     }
 
+    private void installPlus() {
+        PackageInfo info = new PackageInfo();
+        info.packageName = ShizukuManagers.PLUS;
+        info.applicationInfo = new ApplicationInfo();
+        info.applicationInfo.packageName = info.packageName;
+        info.applicationInfo.uid = MANAGER_UID + 1;
+        info.applicationInfo.enabled = true;
+        packages.installPackage(info);
+    }
+
+    @Test public void plusOnlyRequestsThePlusManagerAndIncludesCallerIdentity() throws Exception {
+        packages.removePackage(ShizukuManagers.STOCK);
+        installPlus();
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);
+        showPrompt();
+        Intent request = nextRequest();
+        assertEquals(ShizukuManagers.PLUS, request.getPackage());
+        assertEquals(activity.getPackageName(), request.getStringExtra("callingPackage"));
+        assertEquals(activity.getApplicationInfo().uid, request.getIntExtra("callingUid", -1));
+        assertTrue(reply(request, new Binder()));
+        assertTrue(manager.isReady());
+        assertEquals(1, retries);
+    }
+
+    @Test public void stoppedPlusDoesNotCancelAWorkingStockManager() throws Exception {
+        installPlus();showPrompt();
+        Intent plus = nextRequest(), stock = nextRequest();
+        assertEquals(ShizukuManagers.PLUS, plus.getPackage());
+        assertEquals(ShizukuManagers.STOCK, stock.getPackage());
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);
+        assertTrue(reply(plus, null));
+        assertFalse(manager.isReady());
+        ShadowBinder.setCallingUid(MANAGER_UID);
+        assertTrue(reply(stock, new Binder()));
+        assertTrue(manager.isReady());
+    }
+
+    @Test public void eachReplyMustComeFromItsOwnManagerUid() throws Exception {
+        installPlus();showPrompt();
+        Intent plus = nextRequest();nextRequest();
+        ShadowBinder.setCallingUid(MANAGER_UID);
+        assertFalse(reply(plus, new Binder()));
+        assertNull(ShadowShizuku.attachedPackage);
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);
+        assertTrue(reply(plus, new Binder()));
+        assertTrue(manager.isReady());
+    }
+
+    @Test public void malformedReplyDoesNotConsumeTheManagersValidResponse() throws Exception {
+        installPlus();
+        packages.removePackage(ShizukuManagers.STOCK);
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);
+        showPrompt();
+        Intent request = nextRequest();
+        IBinder receiver = request.getBundleExtra(TermuxConstants.SHIZUKU_BINDER_REQUEST_DATA)
+            .getBinder(TermuxConstants.SHIZUKU_BINDER_REQUEST_BINDER);
+        Parcel empty = Parcel.obtain();
+        try {
+            assertFalse(receiver.transact(IBinder.FIRST_CALL_TRANSACTION, empty, null, IBinder.FLAG_ONEWAY));
+        } finally { empty.recycle(); }
+        assertTrue(reply(request, new Binder()));
+        assertTrue(manager.isReady());
+    }
+
+    @Test public void duplicateStoppedReplyDoesNotConsumeAnotherManagersResponse() throws Exception {
+        installPlus();showPrompt();
+        Intent plus = nextRequest(), stock = nextRequest();
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);
+        assertTrue(reply(plus, null));
+        assertFalse(reply(plus, null));
+        ShadowBinder.setCallingUid(MANAGER_UID);
+        assertTrue(reply(stock, new Binder()));
+        assertTrue(manager.isReady());
+    }
+
+    @Test public void lateManagerCannotReplaceTheAcceptedBinder() throws Exception {
+        installPlus();showPrompt();
+        Intent plus = nextRequest(), stock = nextRequest();Binder first = new Binder();
+        ShadowBinder.setCallingUid(MANAGER_UID + 1);reply(plus, first);
+        ShadowBinder.setCallingUid(MANAGER_UID);reply(stock, new Binder());
+        assertSame(first, ShadowShizuku.binder);
+        assertEquals(1, ShadowShizuku.binds);
+    }
+
     @Test public void connectRequestsAgainAfterManagerReportsStopped() throws Exception {
         showPrompt();
         reply(nextRequest(), null);

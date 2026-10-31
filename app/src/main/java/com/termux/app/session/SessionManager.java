@@ -22,7 +22,6 @@ import com.termux.shared.termux.TermuxConstants;
 import com.termux.terminal.TerminalSessionProcess;
 import java.util.concurrent.CopyOnWriteArrayList;
 import rikka.shizuku.Shizuku;
-import rikka.shizuku.ShizukuProvider;
 
 /** Required normal-session backend. Recovery is an explicit user action, never a command retry. */
 public final class SessionManager {
@@ -37,6 +36,7 @@ public final class SessionManager {
     private SessionConnection connection;
     private boolean requestingBinder;
     private int binderRequest;
+    private int pendingBinderReplies;
     private boolean requestPermissionOnConnect;
     private java.lang.ref.WeakReference<AlertDialog> prompt = new java.lang.ref.WeakReference<>(null);
     private String message = "Start Shizuku, then connect to open a terminal session.";
@@ -199,29 +199,40 @@ public final class SessionManager {
 
     private void requestBinder(Activity activity) {
         try {
-            int managerUid = context.getPackageManager()
-                .getApplicationInfo(ShizukuProvider.MANAGER_APPLICATION_ID, 0).uid;
+            java.util.List<ApplicationInfo> managers = ShizukuManagers.installed(context.getPackageManager());
+            if (managers.isEmpty()) throw new PackageManager.NameNotFoundException("Shizuku / ShizukuPlus");
             final int currentRequest = ++binderRequest;
-            Binder receiver = new Binder() {
-                @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags)
-                    throws RemoteException {
-                    if (code != IBinder.FIRST_CALL_TRANSACTION)
-                        return super.onTransact(code, data, reply, flags);
-                    if (Binder.getCallingUid() != managerUid) return false;
-                    IBinder binder = data.readStrongBinder();
-                    main.post(() -> receiveBinder(currentRequest, binder));
-                    return true;
-                }
-            };
-            Bundle data = new Bundle();
-            data.putBinder(TermuxConstants.SHIZUKU_BINDER_REQUEST_BINDER, receiver);
-            Intent intent = new Intent(TermuxConstants.SHIZUKU_REQUEST_BINDER_ACTION)
-                .setPackage(ShizukuProvider.MANAGER_APPLICATION_ID)
-                .putExtra(TermuxConstants.SHIZUKU_BINDER_REQUEST_DATA, data);
+            pendingBinderReplies = managers.size();
             requestingBinder = true;
             message = "Requesting a connection from Shizuku...";
-            // The manager's exported receiver handles this request and sends the binder back.
-            activity.sendBroadcast(intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES));
+            for (ApplicationInfo manager : managers) {
+                final int managerUid = manager.uid;
+                java.util.concurrent.atomic.AtomicBoolean answered = new java.util.concurrent.atomic.AtomicBoolean();
+                Binder receiver = new Binder() {
+                    @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags)
+                        throws RemoteException {
+                        if (code != IBinder.FIRST_CALL_TRANSACTION)
+                            return super.onTransact(code, data, reply, flags);
+                        if (Binder.getCallingUid() != managerUid) return false;
+                        if (data.dataAvail() == 0) return false;
+                        final IBinder binder;
+                        try { binder = data.readStrongBinder(); }
+                        catch (RuntimeException malformed) { return false; }
+                        if (!answered.compareAndSet(false, true)) return false;
+                        main.post(() -> receiveBinder(currentRequest, binder, manager));
+                        return true;
+                    }
+                };
+                Bundle data = new Bundle();
+                data.putBinder(TermuxConstants.SHIZUKU_BINDER_REQUEST_BINDER, receiver);
+                Intent intent = new Intent(TermuxConstants.SHIZUKU_REQUEST_BINDER_ACTION)
+                    .setPackage(manager.packageName)
+                    .putExtra(TermuxConstants.SHIZUKU_BINDER_REQUEST_DATA, data)
+                    .putExtra("callingPackage", context.getPackageName())
+                    .putExtra("callingUid", context.getApplicationInfo().uid);
+                // The manager's exported receiver handles this request and sends the binder back.
+                activity.sendBroadcast(intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES));
+            }
             main.postDelayed(() -> {
                 if (requestingBinder && currentRequest == binderRequest) {
                     requestingBinder = false;
@@ -239,14 +250,17 @@ public final class SessionManager {
     }
 
     @SuppressLint("RestrictedApi")
-    private void receiveBinder(int currentRequest, IBinder binder) {
+    private void receiveBinder(int currentRequest, IBinder binder, ApplicationInfo manager) {
         if (!requestingBinder || currentRequest != binderRequest) return;
         if (binder == null || !binder.pingBinder()) {
+            if (--pendingBinderReplies > 0) return;
             requestingBinder = false;
             message = "Shizuku is not running. Start it in Shizuku, then tap Connect.";
             notifyChanged();
             return;
         }
+        requestingBinder = false;
+        com.termux.app.BundledRishInstaller.selectManager(context, manager);
         // Use the same attachment handshake as ShizukuProvider; permission checks still apply.
         Shizuku.onBinderReceived(binder, context.getPackageName());
     }
@@ -282,7 +296,7 @@ public final class SessionManager {
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> connect(activity, true));
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-            Intent intent = activity.getPackageManager().getLaunchIntentForPackage(ShizukuProvider.MANAGER_APPLICATION_ID);
+            Intent intent = ShizukuManagers.launchIntent(activity.getPackageManager());
             if (intent == null) status.setText("Install the Shizuku app, start its service, then return here.");
             else activity.startActivity(intent);
         });

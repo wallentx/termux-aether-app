@@ -2,7 +2,7 @@
 
 Open Termux after installing/updating the APK. The fork installs `rish` and
 `termux-rish` automatically for both fresh and existing package prefixes.
-Install and start the separate Shizuku app, then run:
+Install and start stock Shizuku or ShizukuPlus, then run:
 
 ```sh
 rish -c 'id'
@@ -41,10 +41,36 @@ published, as required by Android 14+. Updates replace files by rename so a
 running process retains its existing inode. Installation errors are logged and
 do not reset the package prefix or prevent a normal Termux session.
 
-The 59,672-byte loader is unmodified from the official Shizuku v13.6.0 release.
-Its Apache-2.0 license, release URL and SHA-256 hashes are included beside it
-in the APK and installed directory. The remainder of rish is loaded from the
-installed Shizuku app; this does not bundle a second Shizuku daemon.
+The stock loader is unmodified from the official Shizuku v13.6.0 release. The
+updated bundle also includes the unmodified 91,260-byte ShizukuPlus r3157 loader.
+Their Apache-2.0 license and SHA-256 provenance are included beside them in the
+APK and installed directory. The remainder of rish is loaded from the installed
+manager app; this does not bundle a second Shizuku daemon.
+
+## ShizukuPlus and manager selection
+
+The updated app recognizes `af.shizuku.plus.api` and the stock/drop-in package
+`moe.shizuku.privileged.api` in the current Android user. It selects the matching
+loader, including the Plus drop-in's application-class namespace. A manager
+selected by a verified connection reply remains selected on later startups while
+installed. With no recorded selection, Plus is preferred. Override the loader
+for a particular invocation with `RISH_BACKEND=stock` or `RISH_BACKEND=plus`.
+This selects a client; it does not start a server or grant permission.
+
+When stock and normal Plus are both installed, an already-attached Binder may
+not identify which manager delivered it. If the running manager changed, a
+previously recorded loader can remain selected until a new verified discovery
+reply. Use `RISH_BACKEND=plus` or `RISH_BACKEND=stock` to select it explicitly.
+
+The upstream Plus loader itself prefers the normal Plus package when both Plus
+flavors are installed. Automatic switching between simultaneous Plus flavors has
+not been validated. User commands are not retried on another backend after an
+error, because the original command may already have executed.
+
+The normal ShizukuPlus package can coexist with stock Shizuku. Its drop-in
+uses the stock package ID; Android requires signing compatibility with any
+existing installation of that package, including installations in other users.
+The separate Plus-provided `rish` and `plus` clients remain available if desired.
 
 ## Native Linux programs
 

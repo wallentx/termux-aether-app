@@ -13,6 +13,43 @@ import static org.junit.Assert.*;
 public class BundledRishInstallerTest {
     @Rule public TemporaryFolder files = new TemporaryFolder();
 
+    @Test public void selectsPlusForSideBySideAndDropInWithoutChangingStock() {
+        assertEquals("stock", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", "moe.shizuku.manager.ShizukuApplication"));
+        assertEquals("plus", BundledRishInstaller.backendFor("af.shizuku.plus.api", null));
+        assertEquals("plus", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", "af.shizuku.manager.ShizukuApplication"));
+        assertEquals("stock", BundledRishInstaller.backendFor("moe.shizuku.privileged.api", null));
+    }
+
+    @Test public void startupRetainsVerifiedStockChoiceWhenPlusIsAlsoInstalled() {
+        String plus = "af.shizuku.plus.api", stock = "moe.shizuku.privileged.api";
+        assertEquals(stock, BundledRishInstaller.chooseManager(stock, plus, stock));
+        assertEquals(plus, BundledRishInstaller.chooseManager(stock, plus));
+        assertEquals(plus, BundledRishInstaller.chooseManager(null, plus, stock));
+        assertEquals(plus, BundledRishInstaller.chooseManager("untrusted.package", plus, stock));
+        assertNull(BundledRishInstaller.chooseManager(stock));
+    }
+
+    @Test public void managerSelectionUsesConfiguredLibexecAndDirectoryIdentity() throws Exception {
+        File appFiles = files.newFolder("app-files");
+        File otherFiles = files.newFolder("other-files");
+        File customLibexec = files.newFolder("custom-libexec");
+        BundledRishInstaller.IdentitySource sameIdentity = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, 456, true);
+        // Distinct canonical paths model Android's /data/data and /data/user/0 bind aliases.
+        assertNotEquals(otherFiles.getCanonicalFile(), appFiles.getCanonicalFile());
+        assertEquals(new File(customLibexec, "termux-rish").getCanonicalFile(),
+            BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, sameIdentity));
+        BundledRishInstaller.IdentitySource differentInode = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, file.equals(appFiles) ? 456 : 457, true);
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, differentInode));
+        BundledRishInstaller.IdentitySource differentDevice = file ->
+            new BundledRishInstaller.DirectoryIdentity(file.equals(appFiles) ? 123 : 124, 456, true);
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, differentDevice));
+        BundledRishInstaller.IdentitySource nonDirectory = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, 456, !file.equals(otherFiles));
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, nonDirectory));
+    }
+
     @Test
     public void updatesReadOnlyDexWithoutChangingThePreviouslyPublishedInode() throws Exception {
         File directory = files.newFolder();

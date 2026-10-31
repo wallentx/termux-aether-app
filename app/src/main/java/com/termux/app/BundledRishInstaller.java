@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Installs the optional shell client without changing the user's Shizuku authorization. */
-final class BundledRishInstaller {
+public final class BundledRishInstaller {
     private BundledRishInstaller() {}
 
     static synchronized void install(Context context, File prefix) {
@@ -32,7 +32,7 @@ final class BundledRishInstaller {
             File directory = new File(prefix, "libexec/termux-rish");
             if (!directory.isDirectory() && !directory.mkdirs())
                 throw new IOException("Cannot create " + directory);
-            String[] assets = {"rish_shizuku.dex", "LICENSE", "NOTICE"};
+            String[] assets = {"rish_shizuku.dex", "rish_shizuku_plus.dex", "LICENSE", "NOTICE"};
             InstallMarker marker = new InstallMarker(directory, apkIdentity(context));
             for (String name : assets) marker.add(new File(directory, name), false);
             marker.add(new File(directory, "termux-rish"), true);
@@ -62,9 +62,80 @@ final class BundledRishInstaller {
                 }
             }
             if (!current) marker.record();
-        } catch (IOException | ErrnoException e) {
+            // Refresh independently of the APK receipt: the user may change managers.
+            java.util.List<ApplicationInfo> managers = com.termux.app.session.ShizukuManagers
+                .installed(context.getPackageManager());
+            String[] names = new String[managers.size()];
+            for (int i = 0; i < names.length; i++) names[i] = managers.get(i).packageName;
+            String selected = chooseManager(rememberedManager(directory), names);
+            String backend = "stock";
+            for (ApplicationInfo manager : managers) {
+                if (manager.packageName.equals(selected)) backend = backendFor(manager.packageName, manager.className);
+            }
+            installFile(new File(directory, "backend"), (backend + "\n").getBytes(StandardCharsets.UTF_8), false);
+        } catch (IOException | ErrnoException | RuntimeException e) {
             // An optional client must never send an existing prefix into bootstrap reset.
             Logger.logError("BundledRishInstaller", "Cannot install rish: " + e.getMessage());
+        }
+    }
+
+    static String backendFor(String packageName, String className) {
+        return com.termux.app.session.ShizukuManagers.PLUS.equals(packageName)
+            || (className != null && className.startsWith("af.shizuku.manager.")) ? "plus" : "stock";
+    }
+
+    static String chooseManager(String remembered, String... installed) {
+        for (String name : installed) if (name.equals(remembered)) return name;
+        return installed.length == 0 ? null : installed[0];
+    }
+
+    private static String rememberedManager(File directory) throws IOException {
+        File file = new File(directory, "manager");
+        if (!file.getAbsoluteFile().equals(file.getCanonicalFile()) || !file.isFile() || file.length() > 128)
+            return null;
+        try (InputStream input = new FileInputStream(file)) {
+            return new String(readAll(input), StandardCharsets.UTF_8).trim();
+        }
+    }
+
+    static final class DirectoryIdentity {
+        final long device, inode;
+        final boolean directory;
+        DirectoryIdentity(long device, long inode, boolean directory) {
+            this.device = device; this.inode = inode; this.directory = directory;
+        }
+    }
+    interface IdentitySource { DirectoryIdentity stat(File file) throws IOException; }
+
+    private static DirectoryIdentity directoryIdentity(File file) throws IOException {
+        try {
+            StructStat stat = Os.stat(file.getAbsolutePath());
+            return new DirectoryIdentity(stat.st_dev, stat.st_ino, OsConstants.S_ISDIR(stat.st_mode));
+        } catch (ErrnoException error) { throw new IOException("Cannot identify " + file, error); }
+    }
+
+    static File managedDirectory(File filesDir, File expectedFilesDir, File libexecDir,
+                                 IdentitySource source) throws IOException {
+        DirectoryIdentity actual = source.stat(filesDir), expected = source.stat(expectedFilesDir);
+        if (!actual.directory || !expected.directory || actual.device != expected.device || actual.inode != expected.inode)
+            return null;
+        return new File(libexecDir, "termux-rish").getCanonicalFile();
+    }
+
+    /** A verified discovery reply identifies which manager actually answered. */
+    public static synchronized void selectManager(Context context, ApplicationInfo manager) {
+        try {
+            File directory = managedDirectory(context.getFilesDir(),
+                com.termux.shared.termux.TermuxConstants.TERMUX_FILES_DIR,
+                com.termux.shared.termux.TermuxConstants.TERMUX_LIBEXEC_PREFIX_DIR,
+                BundledRishInstaller::directoryIdentity);
+            if (directory == null || !directory.isDirectory()) return;
+            installFile(new File(directory, "manager"),
+                (manager.packageName + "\n").getBytes(StandardCharsets.UTF_8), false);
+            installFile(new File(directory, "backend"),
+                (backendFor(manager.packageName, manager.className) + "\n").getBytes(StandardCharsets.UTF_8), false);
+        } catch (IOException error) {
+            Logger.logError("BundledRishInstaller", "Cannot select rish loader: " + error.getMessage());
         }
     }
 

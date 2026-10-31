@@ -1,6 +1,15 @@
 #!/system/bin/sh
 # Termux bundled rish launcher. Installed and updated by the APK.
-DEX='@PREFIX@/libexec/termux-rish/rish_shizuku.dex'
+DIRECTORY='@PREFIX@/libexec/termux-rish'
+BACKEND=stock
+if [ -r "$DIRECTORY/backend" ]; then
+    IFS= read -r BACKEND < "$DIRECTORY/backend"
+fi
+case "${RISH_BACKEND:-$BACKEND}" in
+    stock) DEX="$DIRECTORY/rish_shizuku.dex" ;;
+    plus) DEX="$DIRECTORY/rish_shizuku_plus.dex" ;;
+    *) echo 'rish: RISH_BACKEND must be stock or plus.' >&2; exit 2 ;;
+esac
 if [ ! -r "$DEX" ] || [ -w "$DEX" ]; then
     echo 'rish: reopen Termux to restore its bundled, read-only shell loader.' >&2
     exit 1

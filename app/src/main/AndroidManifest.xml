@@ -12,6 +12,7 @@
     <queries>
         <package android:name="com.google.android.inputmethod.latin" />
         <package android:name="moe.shizuku.privileged.api" />
+        <package android:name="af.shizuku.plus.api" />
     </queries>
     <uses-feature
         android:name="android.software.leanback"

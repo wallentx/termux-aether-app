@@ -6,3 +6,13 @@ APK SHA-256: 6e273ab0e991c4e79bc8b1bbb9b9dd739ccac1a8712a541a214078886b7b790f
 DEX SHA-256: 1953c1fd9708904f8fc1f67774843b4cc3d03e5f2a578ff4d654d0625456bc28
 Licensed under Apache-2.0; see LICENSE.
 The Termux launcher is fork-specific; the upstream loader is unchanged.
+
+Additional unmodified ShizukuPlus shell loader, by thejaustin and contributors.
+Byte-for-byte identical to the official Shizuku+ Drop-In 13.7.0.r3116 prerelease.
+Source: https://github.com/thejaustin/ShizukuPlus/tree/13.7.0.r3116/shell
+Release: https://github.com/thejaustin/ShizukuPlus/releases/tag/13.7.0.r3116
+APK SHA-256: 33ae1af2c650595fdd9c4a19d6b9620dbda52237ec77e8afb116847227ddbc7c
+Signing certificate SHA-256: 317c5ecad91285fc0f3cfd2c91775825d57541a6db253e94b15413264d055b80
+DEX SHA-256: 912a45605c8a6cce5f177a274fe5ef7563338a97585509ee551cfa55f4724a4d
+Licensed under Apache-2.0; see LICENSE.
+The launcher selects the installed manager's loader and never retries user commands.

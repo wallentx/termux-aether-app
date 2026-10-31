@@ -29,6 +29,27 @@ public class BundledRishInstallerTest {
         assertNull(BundledRishInstaller.chooseManager(stock));
     }
 
+    @Test public void managerSelectionUsesConfiguredLibexecAndDirectoryIdentity() throws Exception {
+        File appFiles = files.newFolder("app-files");
+        File otherFiles = files.newFolder("other-files");
+        File customLibexec = files.newFolder("custom-libexec");
+        BundledRishInstaller.IdentitySource sameIdentity = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, 456, true);
+        // Distinct canonical paths model Android's /data/data and /data/user/0 bind aliases.
+        assertNotEquals(otherFiles.getCanonicalFile(), appFiles.getCanonicalFile());
+        assertEquals(new File(customLibexec, "termux-rish").getCanonicalFile(),
+            BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, sameIdentity));
+        BundledRishInstaller.IdentitySource differentInode = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, file.equals(appFiles) ? 456 : 457, true);
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, differentInode));
+        BundledRishInstaller.IdentitySource differentDevice = file ->
+            new BundledRishInstaller.DirectoryIdentity(file.equals(appFiles) ? 123 : 124, 456, true);
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, differentDevice));
+        BundledRishInstaller.IdentitySource nonDirectory = file ->
+            new BundledRishInstaller.DirectoryIdentity(123, 456, !file.equals(otherFiles));
+        assertNull(BundledRishInstaller.managedDirectory(otherFiles, appFiles, customLibexec, nonDirectory));
+    }
+
     @Test
     public void updatesReadOnlyDexWithoutChangingThePreviouslyPublishedInode() throws Exception {
         File directory = files.newFolder();

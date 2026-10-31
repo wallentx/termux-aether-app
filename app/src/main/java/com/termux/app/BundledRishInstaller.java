@@ -98,11 +98,38 @@ public final class BundledRishInstaller {
         }
     }
 
+    static final class DirectoryIdentity {
+        final long device, inode;
+        final boolean directory;
+        DirectoryIdentity(long device, long inode, boolean directory) {
+            this.device = device; this.inode = inode; this.directory = directory;
+        }
+    }
+    interface IdentitySource { DirectoryIdentity stat(File file) throws IOException; }
+
+    private static DirectoryIdentity directoryIdentity(File file) throws IOException {
+        try {
+            StructStat stat = Os.stat(file.getAbsolutePath());
+            return new DirectoryIdentity(stat.st_dev, stat.st_ino, OsConstants.S_ISDIR(stat.st_mode));
+        } catch (ErrnoException error) { throw new IOException("Cannot identify " + file, error); }
+    }
+
+    static File managedDirectory(File filesDir, File expectedFilesDir, File libexecDir,
+                                 IdentitySource source) throws IOException {
+        DirectoryIdentity actual = source.stat(filesDir), expected = source.stat(expectedFilesDir);
+        if (!actual.directory || !expected.directory || actual.device != expected.device || actual.inode != expected.inode)
+            return null;
+        return new File(libexecDir, "termux-rish").getCanonicalFile();
+    }
+
     /** A verified discovery reply identifies which manager actually answered. */
     public static synchronized void selectManager(Context context, ApplicationInfo manager) {
         try {
-            File directory = new File(context.getFilesDir(), "usr/libexec/termux-rish").getCanonicalFile();
-            if (!directory.isDirectory()) return;
+            File directory = managedDirectory(context.getFilesDir(),
+                com.termux.shared.termux.TermuxConstants.TERMUX_FILES_DIR,
+                com.termux.shared.termux.TermuxConstants.TERMUX_LIBEXEC_PREFIX_DIR,
+                BundledRishInstaller::directoryIdentity);
+            if (directory == null || !directory.isDirectory()) return;
             installFile(new File(directory, "manager"),
                 (manager.packageName + "\n").getBytes(StandardCharsets.UTF_8), false);
             installFile(new File(directory, "backend"),

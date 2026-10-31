@@ -6,11 +6,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
+// URL parsing does not depend on the device SDK. Android 17 runtime checks use the Pixel probe.
+@Config(sdk = 28)
 public class FileReceiverActivityTest {
 
     @Test

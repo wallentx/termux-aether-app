@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Shell/ADB may launch this fixed diagnostic, ordinary apps may not. -->
+        <activity
+            android:name="com.termux.app.pixel.PixelProbeActivity"
+            android:exported="true"
+            android:permission="android.permission.DUMP"
+            android:launchMode="singleTask"
+            android:label="Termux Pixel diagnostics" />
+    </application>
+</manifest>

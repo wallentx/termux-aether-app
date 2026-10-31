@@ -8,10 +8,16 @@ buildscript {
     }
 }
 
+def requestedProfile = providers.gradleProperty("termuxBuildProfile").getOrElse("pixel11")
+if (!(requestedProfile in ["pixel11", "all"])) {
+    throw new GradleException("termuxBuildProfile must be 'pixel11' or 'all'")
+}
+ext.termuxArm64Only = requestedProfile == "pixel11" || providers.gradleProperty("pixelProbe").orNull == "true"
+
 allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url "https://jitpack.io" }
+        maven { url = uri("https://jitpack.io") }
     }
 }

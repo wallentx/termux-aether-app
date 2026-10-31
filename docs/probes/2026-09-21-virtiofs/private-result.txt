@@ -1,0 +1,21 @@
+PROBE UID=2000
+RAW_SOCKET=fs.sock
+DISKS=0 MEMORY_MIB=256 SHARE=/data/data/com.termux/files/usr/tmp/aether-vufs-zlcax68u/share
+CREATED CID=2100
+android.os.ServiceSpecificException: Error starting VM with CID 2100
+
+Caused by:
+    0: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2100) failed to start
+    1: Error waiting for file: File not found within 5 seconds: /data/misc/virtualizationservice/2100/fs.sock (code -1)
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3390)
+	at android.os.Parcel.createException(Parcel.java:3360)
+	at android.os.Parcel.readException(Parcel.java:3343)
+	at android.os.Parcel.readException(Parcel.java:3287)
+	at android.system.virtualizationservice.IVirtualMachine$Stub$Proxy.start(IVirtualMachine.java:544)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at VirtioFsProbe.main(VirtioFsProbe.java:76)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:367)
+STOP: java.lang.reflect.InvocationTargetException
+PROBE_DONE
+OWNER_RELEASED

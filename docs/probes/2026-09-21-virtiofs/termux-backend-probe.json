@@ -1,0 +1,21 @@
+{
+  "uid": 10445,
+  "selinux": "u:r:untrusted_app:s0:c189,c257,c512,c768\u0000",
+  "directory": "/data/data/com.termux/files/usr/tmp/aether-vufs-zlcax68u",
+  "args": [
+    "/system/bin/linker64",
+    "/data/data/com.termux/files/home/.local/state/termux-aether/virtiofs-probe-20260921/apex/bin/crosvm",
+    "device",
+    "fs",
+    "--socket-path=/data/data/com.termux/files/usr/tmp/aether-vufs-zlcax68u/fs.sock",
+    "--tag=aether_probe",
+    "--shared-dir=/data/data/com.termux/files/usr/tmp/aether-vufs-zlcax68u/share",
+    "--disable-sandbox",
+    "--skip-pivot-root=true"
+  ],
+  "socket_created": true,
+  "early_exit": null,
+  "error": "ConnectionResetError(104, 'Connection reset by peer')",
+  "exit_after_cleanup": -6,
+  "log": "[2026-09-22T02:23:59.962755516+00:00 ERROR crosvm::sys::linux::panic_hook] \n[2026-09-22T02:23:59.966904854+00:00 ERROR crosvm::sys::linux::panic_hook] thread 'main' (24628) panicked at external/crosvm/devices/src/virtio/vhost_user_backend/fs/sys/linux.rs:205:17:\n[2026-09-22T02:23:59.967941703+00:00 ERROR crosvm::sys::linux::panic_hook] Child process 24629 was killed by signal 6\n"
+}

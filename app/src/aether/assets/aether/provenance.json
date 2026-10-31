@@ -1,0 +1,15 @@
+{
+  "ld-linux-aarch64.so.1": "ca4af7c4022222bb405b0b601d818506ea608a2242f3cce43bd0b56b71f94530",
+  "libc.so.6": "cb7b001c0d4030119eb9010ae2d747fcbc51108cfb1e0940fa78618d78dc9ae9",
+  "libm.so.6": "6e070086457ddc46e8fbbd2ed11a63bb0a394e9eeb41bbfbe1825aa286f9cbb1",
+  "libdl.so.2": "9c8504547ea2ae94146760551135ae49b19659ee3f6d913c1f2f055695a7fce7",
+  "libpthread.so.0": "adf2a3b38694cdd6b8e6c08f56a64786420cb20d736ceece48c3871147357ff2",
+  "libresolv.so.2": "490093f15e8f6a5966e89f61c01887657ababeb154b755c48d91a6e2ab9888f2",
+  "librt.so.1": "a941a6c9eb45597c47597e7711e8cd24b039eb488f20337d2a96e35c22daf327",
+  "libutil.so.1": "652a19f51c45f7ce9b9cf73dfd7527bf4fe3129934898a6374db6f83042768ff",
+  "package": "glibc 2.44-0 aarch64",
+  "validation": "Installed package database records PGP validation; files copied from that installation over USB ADB.",
+  "recipe_commit": "c2b00b9e5c58d87f548b1793149d389f48bf9bc5",
+  "source_url": "https://ftp.gnu.org/gnu/libc/glibc-2.44.tar.xz",
+  "source_sha256": "37f600f2bef3c5e8300147059568b2a2e40a7ad6ccc65ce942556d49429cc667"
+}

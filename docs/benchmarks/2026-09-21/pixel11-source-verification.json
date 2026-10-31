@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "uid": 10445,
+  "started_at": 1790042557.8233383,
+  "samples": [
+    {
+      "seconds": 0.20611421600915492,
+      "process_peak_rss_kib": 51344,
+      "mode": "baseline",
+      "pair": 0
+    },
+    {
+      "seconds": 0.09048330603400245,
+      "process_peak_rss_kib": 36300,
+      "mode": "candidate",
+      "pair": 0
+    },
+    {
+      "seconds": 0.08860801899572834,
+      "process_peak_rss_kib": 36372,
+      "mode": "candidate",
+      "pair": 1
+    },
+    {
+      "seconds": 0.22203924198402092,
+      "process_peak_rss_kib": 51388,
+      "mode": "baseline",
+      "pair": 1
+    },
+    {
+      "seconds": 0.19875071698334068,
+      "process_peak_rss_kib": 50972,
+      "mode": "baseline",
+      "pair": 2
+    },
+    {
+      "seconds": 0.08845551899867132,
+      "process_peak_rss_kib": 36288,
+      "mode": "candidate",
+      "pair": 2
+    },
+    {
+      "seconds": 0.08891364501323551,
+      "process_peak_rss_kib": 36232,
+      "mode": "candidate",
+      "pair": 3
+    },
+    {
+      "seconds": 0.20044916402548552,
+      "process_peak_rss_kib": 51568,
+      "mode": "baseline",
+      "pair": 3
+    },
+    {
+      "seconds": 0.1996425240067765,
+      "process_peak_rss_kib": 51304,
+      "mode": "baseline",
+      "pair": 4
+    },
+    {
+      "seconds": 0.08940127497771755,
+      "process_peak_rss_kib": 36152,
+      "mode": "candidate",
+      "pair": 4
+    }
+  ],
+  "inputs": {
+    "baseline": {
+      "sha256": "4e9e0972af8e5f7b44351cf390e1d422271295f10ea51e866bbc21ef67cf8332",
+      "bytes": 4650
+    },
+    "candidate": {
+      "sha256": "f9291b9f7808d6b394d282abf33158fc81505819bb79f9485a534b3e992980f3",
+      "bytes": 5854
+    },
+    "apk": {
+      "sha256": "553de6a1b8e0236b7d4cc1bfb79c4cb46e67e94b813b1dfe0a62bdbeb3aeb3bb",
+      "bytes": 61707628
+    },
+    "source": {
+      "sha256": "1815a147ed799406c9c29b62176559d5360c03f8b0bcd0647310a423c3c2b781",
+      "bytes": 23797649
+    }
+  },
+  "limitations": "Existing release artifacts; fixture HEAD and generated paths reconstructed from the release. Verification only: excludes fixture preparation, interpreter startup, builds and downloads. Peak RSS is whole child-process high-water memory on Linux/Android. Warm filesystem caches; uncontrolled CPU clocks and thermals. Not an app-runtime benchmark.",
+  "source_commit": "821b4f3f6526cdbb953b055448b0f07482b46d1d",
+  "medians": {
+    "baseline": {
+      "seconds": 0.20044916402548552,
+      "process_peak_rss_kib": 51344
+    },
+    "candidate": {
+      "seconds": 0.08891364501323551,
+      "process_peak_rss_kib": 36288
+    }
+  },
+  "finished_at": 1790042561.2783039
+}

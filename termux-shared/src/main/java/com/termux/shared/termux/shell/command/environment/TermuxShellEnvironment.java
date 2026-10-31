@@ -1,6 +1,8 @@
 package com.termux.shared.termux.shell.command.environment;
 
 import android.content.Context;
+import android.os.Build;
+import android.os.Process;
 
 import androidx.annotation.NonNull;
 
@@ -14,7 +16,9 @@ import com.termux.shared.shell.command.environment.ShellCommandShellEnvironment;
 import com.termux.shared.termux.TermuxBootstrap;
 import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.shell.TermuxShellUtils;
+import com.termux.shared.termux.shell.TermuxShellLauncher;
 
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 
@@ -80,6 +84,12 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
 
         // If failsafe is not enabled, then we keep default PATH and TMPDIR so that system binaries can be used
         if (!isFailSafe) {
+            if (requiresLinker(currentPackageContext)) {
+                // Select the linker variant before login and bootstrap post-install scripts run.
+                // The primary libtermux-exec.so may still be the direct-exec variant on first boot.
+                TermuxShellLauncher.addExecPreload(environment, new File(TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH,
+                    "libtermux-exec-linker-ld-preload.so"));
+            }
             environment.put(ENV_TMPDIR, TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
             if (TermuxBootstrap.isAppPackageVariantAPTAndroid5()) {
                 // Termux in android 5/6 era shipped busybox binaries in applets directory
@@ -112,6 +122,18 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
     @Override
     public String[] setupShellCommandArguments(@NonNull String executable, String[] arguments) {
         return TermuxShellUtils.setupShellCommandArguments(executable, arguments);
+    }
+
+    @NonNull
+    @Override
+    public String[] setupShellCommandExecution(@NonNull Context context, @NonNull String[] command,
+                                               boolean loginShell, @NonNull HashMap<String, String> environment) {
+        return TermuxShellLauncher.prepare(command, loginShell, requiresLinker(context),
+            Build.VERSION.SDK_INT >= 23 && Process.is64Bit(), new File(context.getApplicationInfo().dataDir));
+    }
+
+    private static boolean requiresLinker(Context context) {
+        return Build.VERSION.SDK_INT >= 29 && context.getApplicationInfo().targetSdkVersion >= 29;
     }
 
 }

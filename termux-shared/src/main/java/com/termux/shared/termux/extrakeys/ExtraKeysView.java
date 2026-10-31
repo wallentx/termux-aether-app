@@ -152,6 +152,16 @@ public final class ExtraKeysView extends GridLayout {
      * the one returned by {@link #getDefaultSpecialButtons(ExtraKeysView)}. */
     protected Map<SpecialButton, SpecialButtonState> mSpecialButtons;
 
+    @Nullable private Runnable mSpecialButtonStateChangedListener;
+
+    public void setOnSpecialButtonStateChangedListener(@Nullable Runnable listener) {
+        mSpecialButtonStateChangedListener = listener;
+    }
+
+    void onSpecialButtonStateChanged() {
+        if (mSpecialButtonStateChangedListener != null) mSpecialButtonStateChangedListener.run();
+    }
+
     /** The keys for the {@link SpecialButton} added to {@link #mSpecialButtons}. This is automatically
      * set when the call to {@link #setSpecialButtons(Map)} is made. */
     protected Set<String> mSpecialButtonsKeys;

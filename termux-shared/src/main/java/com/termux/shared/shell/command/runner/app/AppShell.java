@@ -80,6 +80,15 @@ public final class AppShell {
                                    @NonNull final IShellEnvironment shellEnvironmentClient,
                                    @Nullable HashMap<String, String> additionalEnvironment,
                                    final boolean isSynchronous) {
+        return execute(currentPackageContext, executionCommand, appShellClient, shellEnvironmentClient,
+            additionalEnvironment, isSynchronous, null);
+    }
+
+    public static AppShell execute(@NonNull final Context currentPackageContext, @NonNull ExecutionCommand executionCommand,
+                                   final AppShellClient appShellClient,
+                                   @NonNull final IShellEnvironment shellEnvironmentClient,
+                                   @Nullable HashMap<String, String> additionalEnvironment,
+                                   final boolean isSynchronous, @Nullable AppShellProcess.Factory processFactory) {
         if (executionCommand.executable == null || executionCommand.executable.isEmpty()) {
             executionCommand.setStateFailed(Errno.ERRNO_FAILED.getCode(),
                 currentPackageContext.getString(R.string.error_executable_unset, executionCommand.getCommandIdAndLabelLogString()));
@@ -102,13 +111,14 @@ public final class AppShell {
             executionCommand.commandLabel = executableBasename;
 
         // Setup command args
-        final String[] commandArray = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
+        String[] commandArray = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
 
         // Setup command environment
         HashMap<String, String> environment = shellEnvironmentClient.setupShellCommandEnvironment(currentPackageContext,
             executionCommand);
         if (additionalEnvironment != null)
             environment.putAll(additionalEnvironment);
+        commandArray = shellEnvironmentClient.setupShellCommandExecution(currentPackageContext, commandArray, false, environment);
         List<String> environmentList = ShellEnvironmentUtils.convertEnvironmentToEnviron(environment);
         Collections.sort(environmentList);
         String[] environmentArray = environmentList.toArray(new String[0]);
@@ -128,7 +138,9 @@ public final class AppShell {
         // Exec the process
         final Process process;
         try {
-            process = Runtime.getRuntime().exec(commandArray, environmentArray, new File(executionCommand.workingDirectory));
+            process = processFactory == null
+                ? Runtime.getRuntime().exec(commandArray, environmentArray, new File(executionCommand.workingDirectory))
+                : processFactory.start(commandArray, environmentArray, executionCommand.workingDirectory);
         } catch (IOException e) {
             executionCommand.setStateFailed(Errno.ERRNO_FAILED.getCode(), currentPackageContext.getString(R.string.error_failed_to_execute_app_shell_command, executionCommand.getCommandIdAndLabelLogString()), e);
             AppShell.processAppShellResult(null, executionCommand);
@@ -140,7 +152,10 @@ public final class AppShell {
             try {
                 appShell.executeInner(currentPackageContext);
             } catch (IllegalThreadStateException | InterruptedException e) {
-                // TODO: Should either of these be handled or returned?
+                appShell.killIfExecuting(currentPackageContext, true);
+                if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+            } finally {
+                if (process instanceof AppShellProcess) process.destroy();
             }
         } else {
             new Thread() {
@@ -149,7 +164,10 @@ public final class AppShell {
                     try {
                         appShell.executeInner(currentPackageContext);
                     } catch (IllegalThreadStateException | InterruptedException e) {
-                        // TODO: Should either of these be handled or returned?
+                        appShell.killIfExecuting(currentPackageContext, true);
+                        if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+                    } finally {
+                        if (process instanceof AppShellProcess) process.destroy();
                     }
                 }
             }.start();
@@ -168,7 +186,7 @@ public final class AppShell {
      * @param context The {@link Context} for operations.
      */
     private void executeInner(@NonNull final Context context) throws IllegalThreadStateException, InterruptedException {
-        mExecutionCommand.mPid = ShellUtils.getPid(mProcess);
+        mExecutionCommand.mPid = processPid();
 
         Logger.logDebug(LOG_TAG, "Running \"" + mExecutionCommand.getCommandIdAndLabelLogString() + "\" AppShell with pid " + mExecutionCommand.mPid);
 
@@ -183,29 +201,29 @@ public final class AppShell {
         STDOUT.start();
         STDERR.start();
 
-        if (!DataUtils.isNullOrEmpty(mExecutionCommand.stdin)) {
-            try {
+        try {
+            if (!DataUtils.isNullOrEmpty(mExecutionCommand.stdin)) {
                 STDIN.write((mExecutionCommand.stdin + "\n").getBytes(StandardCharsets.UTF_8));
                 STDIN.flush();
-                STDIN.close();
-                //STDIN.write("exit\n".getBytes(StandardCharsets.UTF_8));
-                //STDIN.flush();
-            } catch(IOException e) {
-                if (e.getMessage() != null && (e.getMessage().contains("EPIPE") || e.getMessage().contains("Stream closed"))) {
-                    // Method most horrid to catch broken pipe, in which case we
-                    // do nothing. The command is not a shell, the shell closed
-                    // STDIN, the script already contained the exit command, etc.
-                    // these cases we want the output instead of returning null.
-                } else {
-                    // other issues we don't know how to handle, leads to
-                    // returning null
-                    mExecutionCommand.setStateFailed(Errno.ERRNO_FAILED.getCode(), context.getString(R.string.error_exception_received_while_executing_app_shell_command, mExecutionCommand.getCommandIdAndLabelLogString(), e.getMessage()), e);
-                    mExecutionCommand.resultData.exitCode = 1;
-                    AppShell.processAppShellResult(this, null);
-                    kill();
-                    return;
-                }
             }
+        } catch(IOException e) {
+            if (e.getMessage() != null && (e.getMessage().contains("EPIPE") || e.getMessage().contains("Stream closed"))) {
+                // Method most horrid to catch broken pipe, in which case we
+                // do nothing. The command is not a shell, the shell closed
+                // STDIN, the script already contained the exit command, etc.
+                // these cases we want the output instead of returning null.
+            } else {
+                // other issues we don't know how to handle, leads to
+                // returning null
+                mExecutionCommand.setStateFailed(Errno.ERRNO_FAILED.getCode(), context.getString(R.string.error_exception_received_while_executing_app_shell_command, mExecutionCommand.getCommandIdAndLabelLogString(), e.getMessage()), e);
+                mExecutionCommand.resultData.exitCode = 1;
+                AppShell.processAppShellResult(this, null);
+                kill();
+                return;
+            }
+        } finally {
+            // Empty input must also deliver EOF; otherwise commands such as cat never exit.
+            try { STDIN.close(); } catch (IOException ignored) {}
         }
 
         // wait for our process to finish, while we gobble away in the background
@@ -262,6 +280,7 @@ public final class AppShell {
 
         Logger.logDebug(LOG_TAG, "Send SIGKILL to \"" + mExecutionCommand.getCommandIdAndLabelLogString() + "\" AppShell");
 
+        boolean wasExecuting = mExecutionCommand.isExecuting();
         if (mExecutionCommand.setStateFailed(Errno.ERRNO_FAILED.getCode(), context.getString(R.string.error_sending_sigkill_to_process))) {
             if (processResult) {
                 mExecutionCommand.resultData.exitCode = 137; // SIGKILL
@@ -269,7 +288,7 @@ public final class AppShell {
             }
         }
 
-        if (mExecutionCommand.isExecuting()) {
+        if (wasExecuting) {
             kill();
         }
     }
@@ -278,13 +297,21 @@ public final class AppShell {
      * Kill this {@link AppShell} by sending a {@link OsConstants#SIGILL} to its {@link #mProcess}.
      */
     public void kill() {
-        int pid = ShellUtils.getPid(mProcess);
+        if (mProcess instanceof AppShellProcess) {
+            ((AppShellProcess) mProcess).kill();
+            return;
+        }
+        int pid = processPid();
         try {
             // Send SIGKILL to process
             Os.kill(pid, OsConstants.SIGKILL);
         } catch (ErrnoException e) {
             Logger.logWarn(LOG_TAG, "Failed to send SIGKILL to \"" + mExecutionCommand.getCommandIdAndLabelLogString() + "\" AppShell with pid " + pid + ": " + e.getMessage());
         }
+    }
+
+    private int processPid() {
+        return mProcess instanceof AppShellProcess ? ((AppShellProcess) mProcess).getPid() : ShellUtils.getPid(mProcess);
     }
 
     /**

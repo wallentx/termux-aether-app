@@ -1,0 +1,35 @@
+--------- beginning of system
+09-21 21:29:12.442 27163 27163 I virtmgr : virtualizationmanager: Started VirtualizationService RpcServer. Ready to accept connections
+09-21 21:29:12.454 27163 27167 I virtmgr : virtualizationmanager::virtualmachine: callers secontext: u:r:shell:s0
+09-21 21:29:12.466 27163 27167 I virtmgr : virtualizationmanager::dt_overlay: Passing secretkeeper public key to pvmfw. This will be rejected if it doesn't match the value in the pvmfw config, causing the pVM to fail to start.
+09-21 21:29:12.466 27163 27167 I virtmgr : virtualizationmanager::debug_config: Debug policy ignored for non-Microdroid VM
+09-21 21:29:12.466 27163 27167 W virtmgr : virtualizationmanager::virtualmachine: VM profile is missing. It is recommended to specify one
+09-21 21:29:12.466 27163 27167 W virtmgr : virtualizationmanager::virtualization_service: unknown partition for '/data/local/tmp/termux-arch-v2/Image'
+09-21 21:29:12.467 27163 27167 W virtmgr : virtualizationmanager::crosvm::args: Memory balloon not enabled:
+09-21 21:29:12.467 27163 27167 W virtmgr :                 config.balloon=false,hypervisor.memory_reclaim.supported=true
+09-21 21:29:12.468 27163 27167 I virtmgr : virtualizationmanager::crosvm: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2099) created
+09-21 21:29:12.469 27163 27167 I virtmgr : virtualizationmanager::atom: Writing VmCreationRequested atom into statsd.
+09-21 21:29:12.473 27163 27167 I virtmgr : virtualizationmanager::crosvm::runner: Running crosvm with args: ["device", "fs", "--socket-path=/data/misc/virtualizationservice/2099/fs.sock", "--tag=aether_probe", "--shared-dir=/storage/emulated/0/Download/aether-vufs-probe-20260921", "--cfg", "ugid_map='0 0 2000 2000 0 /; 0 0 0 0 511 /Android'", "--disable-sandbox", "--skip-pivot-root=true"]
+09-21 21:29:12.480 27163 27167 I virtmgr : virtualizationmanager::crosvm::runner: Spawned virtiofs crosvm_vu_fs(27175)
+09-21 21:29:12.584 27163 27167 I virtmgr : virtualizationmanager::crosvm::runner: Running crosvm with args: ["--extended-status", "--log-level", "debug,disk=warn", "run", "--disable-sandbox", "--cid", "2099", "--name", "crosvm_aether-vufs-diskless-probe", "/proc/self/fd/19 (/data/local/tmp/termux-arch-v2/Image)", "--params", "console=hvc0 root=/dev/does-not-exist ro panic=-1", "--params", "hostname=aether-vufs-diskless-probe", "--cpus", "num-cores=1,sve=[auto=true]", "--pci", "mem=[start=0x2c000000,size=0x2000000],cam=[start=0x2e000000,size=0x1000000]", "--no-pmu", "--irqchip=kernel[allow-vgic-its=true]", "--mem", "256", "--force-disable-readonly-mem", "--params", "coherent_pool=16384", "--no-balloon", "--serial=type=file,path=/proc/self/fd/20 (/data/local/tmp/aether-vufs-probe-20260921/console.txt),hardware=serial,num=1", "--serial=type=file,path=/proc/self/fd/20 (/data/local/tmp/aether-vufs-probe-20260921/console.txt),hardware=virtio-console,num=1,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/22 (pipe:[6741812]),hardware=virtio-console,num=3,max-queue-sizes=[2,32]", "--serial=type=file,path=/proc/self/fd/24 (pipe:[6741813]),hardware=serial,num=2", "--serial=type=sink,hardware=virtio-console,num=2,max-queue-sizes=[2,32]", "--no-usb", "--device-tree-overlay", "/proc/self/fd/17 (/data/misc/virtualizationservice/2099/vm_dt_overlay.dtbo)", "--vhost-user", "fs,socket=/data/misc/virtualizationservice/2099/fs.sock", "--socket", "/proc/self/fd/13 (socket:[6741836])"]
+09-21 21:29:12.594 27163 27167 I virtmgr : virtualizationmanager::crosvm: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2099) started
+09-21 21:29:12.664 27177 27177 D crosvm  : creating hypervisor: Kvm { device: Some("/dev/kvm") }
+09-21 21:29:13.762 27177 27183 I crosvm  : system reset event
+09-21 21:29:13.762 27177 27177 I crosvm  : vcpu requested reset
+09-21 21:29:13.762 27177 27177 E crosvm  : failed to send VcpuControl: sending on a closed channel
+09-21 21:29:13.769 27176 27176 I crosvm  : vhost-user connection closed
+09-21 21:29:13.787 27175 27175 I crosvm  : exiting with success
+09-21 21:29:13.899 27177 27177 I crosvm  : exiting with reset
+09-21 21:29:13.923 27163 27173 I virtmgr : virtualizationmanager::crosvm::args: Log(2099): EOF
+09-21 21:29:13.924 27163 27179 W virtmgr : virtualizationmanager::crosvm::runner: Failed to get guest RSS: can't find VmHWM in the status file
+09-21 21:29:13.924 27163 27179 I virtmgr : virtualizationmanager::crosvm: crosvm(27177) exited with status exit status: 32
+09-21 21:29:13.925 27163 27179 I virtmgr : virtualizationmanager::crosvm: Vhost user device(27175) exited with status exit status: 0
+09-21 21:29:13.925 27163 27179 I virtmgr : virtualizationmanager::crosvm: Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2099) exited
+09-21 21:29:13.925 27163 27179 I virtmgr : virtualizationmanager::atom: Writing VmExited atom into statsd.
+09-21 21:29:15.097 27163 27167 E virtmgr : avflog: Error stopping VM with CID 2099
+09-21 21:29:15.097 27163 27167 E virtmgr : 
+09-21 21:29:15.097 27163 27167 E virtmgr : Caused by:
+09-21 21:29:15.097 27163 27167 E virtmgr :     VM is not running
+09-21 21:29:15.143 27163 27167 I virtmgr : virtualizationmanager::virtualmachine::aidl: Dropping Non-protected virtual machine "aether-vufs-diskless-probe" (owner: shell, cid: 2099)
+09-21 21:29:15.143 27163 27163 I virtmgr : virtualizationmanager: Shutting down VirtualizationService RpcServer
+09-21 21:29:15.143 27163 27163 I virtmgr : virtualizationmanager: All VMs halted.

@@ -894,6 +894,11 @@ public final class TermuxConstants {
     /** The broadcast action sent when Termux App opens */
     public static final String BROADCAST_TERMUX_OPENED = TERMUX_PACKAGE_NAME + ".app.OPENED";
 
+    /** Shizuku manager's binder request activity action and callback bundle keys. */
+    public static final String SHIZUKU_REQUEST_BINDER_ACTION = "rikka.shizuku.intent.action.REQUEST_BINDER";
+    public static final String SHIZUKU_BINDER_REQUEST_DATA = "data";
+    public static final String SHIZUKU_BINDER_REQUEST_BINDER = "binder";
+
     /** The Uri authority for Termux app file shares */
     public static final String TERMUX_FILE_SHARE_URI_AUTHORITY = TERMUX_PACKAGE_NAME + ".files"; // Default: "com.termux.files"
 

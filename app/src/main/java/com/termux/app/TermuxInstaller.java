@@ -20,6 +20,7 @@ import com.termux.shared.markdown.MarkdownUtils;
 import com.termux.shared.errors.Error;
 import com.termux.shared.android.PackageUtils;
 import com.termux.shared.termux.TermuxConstants;
+import com.termux.shared.termux.TermuxBootstrap;
 import com.termux.shared.termux.TermuxUtils;
 import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment;
 
@@ -27,7 +28,10 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -107,6 +111,23 @@ final class TermuxInstaller {
             if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
+                // Changing the bundled bootstrap must not reinterpret an existing APT prefix.
+                // Use an exit-only dialog, never the bootstrap retry/reset dialog here.
+                if (TermuxBootstrap.isAppPackageManagerPACMAN() && hasAptOnlyPrefix(TERMUX_PREFIX_DIR)) {
+                    MessageDialogUtils.exitAppWithErrorMessage(activity,
+                        activity.getString(R.string.bootstrap_error_title),
+                        activity.getString(R.string.bootstrap_error_pacman_apt_prefix));
+                    return;
+                }
+                try {
+                    if (Build.VERSION.SDK_INT >= 29 && activity.getApplicationInfo().targetSdkVersion >= 29)
+                        selectLinkerPreload(TERMUX_PREFIX_DIR);
+                } catch (IOException e) {
+                    // An existing prefix must never enter the destructive bootstrap retry path.
+                    MessageDialogUtils.exitAppWithErrorMessage(activity,
+                        activity.getString(R.string.bootstrap_error_title), e.getMessage());
+                    return;
+                }
                 whenDone.run();
                 return;
             }
@@ -210,6 +231,9 @@ final class TermuxInstaller {
                         Os.symlink(symlink.first, symlink.second);
                     }
 
+                    if (Build.VERSION.SDK_INT >= 29 && activity.getApplicationInfo().targetSdkVersion >= 29)
+                        selectLinkerPreload(TERMUX_STAGING_PREFIX_DIR);
+
                     Logger.logInfo(LOG_TAG, "Moving termux prefix staging to prefix directory.");
 
                     if (!TERMUX_STAGING_PREFIX_DIR.renameTo(TERMUX_PREFIX_DIR)) {
@@ -221,6 +245,8 @@ final class TermuxInstaller {
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);
 
+                    BundledRishInstaller.install(activity, TERMUX_PREFIX_DIR);
+                    BundledAetherInstaller.install(activity);
                     activity.runOnUiThread(whenDone);
 
                 } catch (final Exception e) {
@@ -237,6 +263,31 @@ final class TermuxInstaller {
                 }
             }
         }.start();
+    }
+
+    static boolean hasAptOnlyPrefix(File prefix) {
+        return new File(prefix, "var/lib/dpkg/status").isFile()
+            && !new File(prefix, "var/lib/pacman/local/ALPM_DB_VERSION").isFile();
+    }
+
+    /** Switch the packaged direct variant before login overwrites LD_PRELOAD. Preserve custom variants. */
+    @android.annotation.TargetApi(26)
+    static void selectLinkerPreload(File prefix) throws IOException {
+        File primary = new File(prefix, "lib/libtermux-exec-ld-preload.so");
+        File direct = new File(prefix, "lib/libtermux-exec-direct-ld-preload.so");
+        File linker = new File(prefix, "lib/libtermux-exec-linker-ld-preload.so");
+        if (!primary.isFile() || !direct.isFile() || !linker.isFile()) return;
+        if (primary.length() != direct.length() ||
+            !java.util.Arrays.equals(Files.readAllBytes(primary.toPath()), Files.readAllBytes(direct.toPath()))) return;
+        File temporary = File.createTempFile(".termux-exec-", ".so", primary.getParentFile());
+        try {
+            Files.copy(linker.toPath(), temporary.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            // Never overwrite an inode that may already be mapped by another running shell.
+            Files.move(temporary.toPath(), primary.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary.toPath());
+        }
     }
 
     public static void showBootstrapErrorDialog(Activity activity, Runnable whenDone, String message) {
